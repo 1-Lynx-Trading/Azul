@@ -843,12 +843,21 @@ const App = (() => {
     if (genre !== undefined) activeGenre = genre;
     stopUnsub();
     main().innerHTML = `<div class="loading"><span class="spin">◌</span> Loading stories…</div>`;
-    let q = db.collection('stories').where('visibility','in',['public',null]);
-    if (activeGenre) q = q.where('genre','==',activeGenre);
-    if (activeTab === 'latest') q = q.orderBy('createdAt','desc');
-    else q = q.orderBy('likeCount','desc');
+    // Simple single-field orderBy — no composite index needed.
+    // Visibility and genre filtering done client-side to avoid index requirements.
+    const q = db.collection('stories').orderBy('createdAt','desc');
     unsub = q.onSnapshot(snap => {
-      let docs = snap.docs;
+      let docs = snap.docs.filter(d => {
+        const v = d.data().visibility;
+        // show public, unlisted, or legacy docs with no visibility field
+        if (v === 'private') return false;
+        if (activeGenre && d.data().genre !== activeGenre) return false;
+        return true;
+      });
+      // Sort client-side for 'popular' tab
+      if (activeTab === 'popular') {
+        docs = docs.slice().sort((a,b) => ((b.data().likes||[]).length) - ((a.data().likes||[]).length));
+      }
       if (!docs.length) {
         main().innerHTML = renderFeedShell(`<div class="empty-state">
           <div class="empty-icon">${icon('book','icon-lg')}</div>
@@ -889,7 +898,8 @@ const App = (() => {
     const liked = user && (d.likes||[]).includes(user.uid);
     const saved = isSaved(id);
     const author = d.anonymous ? 'Anonymous' : esc(d.authorName||'Unknown');
-    const preview = esc(d.body||'').substring(0,200) + ((d.body||'').length>200?'…':'');
+    const rawPreview = (d.body||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+    const preview = esc(rawPreview).substring(0,200) + (rawPreview.length>200?'…':'');
     const isOwner = user && user.uid===d.authorId;
     const genreTag = d.genre ? `<span class="genre-tag">${esc(d.genre)}</span>` : '';
     const seriesTag = d.series ? `<span class="genre-tag" style="color:var(--accent);border-color:rgba(201,169,110,0.3)">${icon('book','icon-sm')} ${esc(d.series)}</span>` : '';
@@ -1303,7 +1313,7 @@ const App = (() => {
     stopUnsub();
     main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
     try {
-      const snap = await db.collection('stories').where('authorId','==',authorId).where('anonymous','==',false).orderBy('createdAt','desc').get();
+      const snap = await db.collection('stories').where('authorId','==',authorId).orderBy('createdAt','desc').get();
       const stories = snap.docs;
       const totalLikes = stories.reduce((sum,d)=>sum+((d.data().likes||[]).length),0);
       const totalViews = stories.reduce((sum,d)=>sum+(d.data().views||0),0);
