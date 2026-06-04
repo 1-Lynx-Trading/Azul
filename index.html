@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Azul — Share Your Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
-
   :root {
     --bg: #0e0e0e;
     --surface: #161616;
@@ -18,6 +18,7 @@
     --accent: #c9a96e;
     --accent2: #e8c88a;
     --danger: #c96e6e;
+    --success: #6ec98a;
     --radius: 12px;
   }
 
@@ -32,9 +33,10 @@
     line-height: 1.6;
   }
 
+  /* ── NAV ── */
   nav {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(14,14,14,0.95);
+    background: rgba(14,14,14,0.97);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     padding: 0 24px;
@@ -42,6 +44,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
   }
   .nav-logo {
     font-family: 'Playfair Display', serif;
@@ -50,19 +53,88 @@
     cursor: pointer;
     letter-spacing: 0.02em;
     user-select: none;
+    flex-shrink: 0;
   }
   .nav-logo span { font-style: italic; }
-  .nav-center { display: flex; gap: 8px; }
-  #nav-auth { display: flex; gap: 10px; align-items: center; }
+
+  .nav-center { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .nav-search {
+    display: flex;
+    align-items: center;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    gap: 8px;
+    flex: 1;
+    max-width: 280px;
+    transition: border-color .2s;
+  }
+  .nav-search:focus-within { border-color: var(--accent); }
+  .nav-search svg { color: var(--text2); flex-shrink: 0; }
+  .nav-search input {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    width: 100%;
+    outline: none;
+    padding: 0;
+  }
+  #nav-auth { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
   .nav-user {
     font-size: 0.8rem;
     color: var(--text2);
-    max-width: 160px;
+    max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
+  /* ── TABS ── */
+  .feed-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: all .18s;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── GENRE FILTER ── */
+  .genre-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+  .genre-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 0.78rem;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .genre-chip:hover { color: var(--text); border-color: #444; }
+  .genre-chip.active { background: rgba(201,169,110,0.15); border-color: var(--accent); color: var(--accent); }
+
+  /* ── BUTTONS ── */
   button { cursor: pointer; font-family: 'DM Sans', sans-serif; border: none; outline: none; transition: all .18s; }
 
   .btn-primary {
@@ -95,6 +167,7 @@
     padding: 4px 8px;
     border-radius: 4px;
     border: 1px solid transparent;
+    display: inline-flex; align-items: center; gap: 4px;
   }
   .btn-delete:hover { border-color: var(--danger); }
 
@@ -110,6 +183,7 @@
   }
   .back-btn:hover { color: var(--accent); }
 
+  /* ── LAYOUT ── */
   #main {
     max-width: 720px;
     margin: 0 auto;
@@ -126,6 +200,7 @@
   .spin { display: inline-block; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ── FEED ── */
   .feed { display: flex; flex-direction: column; gap: 20px; }
 
   .card {
@@ -155,6 +230,15 @@
   .author-tag.anon { color: var(--text2); background: rgba(255,255,255,0.05); }
   .time-tag { font-size: 0.72rem; color: var(--text2); }
 
+  .genre-tag {
+    font-size: 0.7rem;
+    color: var(--text2);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+
   .card-title {
     font-family: 'Playfair Display', serif;
     font-size: 1.25rem;
@@ -163,7 +247,7 @@
     margin-bottom: 10px;
   }
   .card-preview { font-size: 0.88rem; color: var(--text2); line-height: 1.65; margin-bottom: 16px; }
-  .card-footer { display: flex; gap: 12px; }
+  .card-footer { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
   .react-btn {
     background: transparent;
@@ -172,13 +256,15 @@
     border-radius: 20px;
     padding: 5px 14px;
     font-size: 0.82rem;
-    display: flex; align-items: center; gap: 6px;
+    display: inline-flex; align-items: center; gap: 6px;
     transition: all .18s;
   }
   .react-btn:hover { color: var(--accent); border-color: var(--accent); }
   .react-btn.liked { color: #e86e6e; border-color: #e86e6e; }
+  .react-btn.saved { color: var(--accent); border-color: var(--accent); }
   .react-btn.big { padding: 8px 20px; font-size: 0.9rem; }
 
+  /* ── STORY VIEW ── */
   .story-view { animation: fadeUp .3s ease; }
   @keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
 
@@ -198,13 +284,35 @@
     margin-bottom: 28px;
   }
   .story-body { font-size: 1rem; line-height: 1.85; color: #c8c4bc; }
-  .story-actions { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .story-body p { margin-bottom: 1.2em; }
+  .story-body h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin: 1.5em 0 0.5em; color: var(--text); }
+  .story-body h3 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin: 1.2em 0 0.4em; color: var(--text); }
+  .story-body blockquote { border-left: 3px solid var(--accent); padding-left: 16px; color: var(--text2); font-style: italic; margin: 1.2em 0; }
+  .story-body strong { color: var(--text); font-weight: 500; }
+  .story-body em { font-style: italic; }
+  .story-actions { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 
+  /* ── SERIES BADGE ── */
+  .series-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--accent);
+    background: rgba(201,169,110,0.1);
+    border: 1px solid rgba(201,169,110,0.25);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  /* ── COMMENTS ── */
   .comments-section {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 32px;
+    margin-bottom: 24px;
   }
   .comments-heading {
     font-family: 'Playfair Display', serif;
@@ -224,8 +332,9 @@
   .comment p { margin-top: 6px; font-size: 0.9rem; color: #bbb; }
   .no-comments { color: var(--text2); font-size: 0.88rem; font-style: italic; }
   .comment-form { display: flex; flex-direction: column; gap: 12px; }
-  .comment-controls { display: flex; align-items: center; justify-content: space-between; }
+  .comment-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 
+  /* ── WRITE VIEW ── */
   .write-view { animation: fadeUp .3s ease; }
   .write-heading {
     font-family: 'Playfair Display', serif;
@@ -233,8 +342,60 @@
     margin-bottom: 28px;
   }
   .write-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+  .write-options { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 
-  input[type=text], input[type=email], input[type=password], textarea {
+  /* ── RICH TEXT TOOLBAR ── */
+  .editor-toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 8px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    flex-wrap: wrap;
+  }
+  .tool-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text2);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    min-width: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .tool-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); border-color: var(--border); }
+  .tool-btn.active { background: rgba(201,169,110,0.15); color: var(--accent); border-color: rgba(201,169,110,0.3); }
+  .tool-sep { width: 1px; background: var(--border); margin: 0 4px; align-self: stretch; }
+
+  .story-body-editor {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    border-radius: 0 0 8px 8px;
+    padding: 16px;
+    width: 100%;
+    outline: none;
+    line-height: 1.8;
+    min-height: 280px;
+    transition: border-color .2s;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .story-body-editor:focus { border-color: var(--accent); }
+  .story-body-editor:empty:before { content: attr(data-placeholder); color: #555; pointer-events: none; }
+  .story-body-editor blockquote { border-left: 3px solid var(--accent); padding-left: 14px; color: var(--text2); font-style: italic; margin: 8px 0; }
+  .story-body-editor h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text); }
+  .story-body-editor h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--text); }
+  .story-body-editor img { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
+
+  /* ── INPUTS ── */
+  input[type=text], input[type=email], input[type=password], input[type=url], textarea, select {
     background: var(--surface2);
     border: 1px solid var(--border);
     color: var(--text);
@@ -246,9 +407,12 @@
     outline: none;
     transition: border-color .2s;
     resize: vertical;
+    -webkit-appearance: none;
   }
-  input:focus, textarea:focus { border-color: var(--accent); }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
   ::placeholder { color: #555; }
+  select { cursor: pointer; }
+  select option { background: var(--surface2); }
 
   .story-title-input {
     background: var(--surface2);
@@ -265,22 +429,9 @@
   }
   .story-title-input:focus { border-color: var(--accent); }
 
-  .story-body-input {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.95rem;
-    border-radius: 8px;
-    padding: 12px 16px;
-    width: 100%;
-    outline: none;
-    line-height: 1.8;
-    min-height: 260px;
-    resize: vertical;
-    transition: border-color .2s;
-  }
-  .story-body-input:focus { border-color: var(--accent); }
+  .form-row { display: flex; gap: 12px; margin-bottom: 14px; }
+  .form-row > * { flex: 1; }
+  .form-label { font-size: 0.78rem; color: var(--text2); margin-bottom: 6px; display: block; }
 
   .anon-label {
     display: flex;
@@ -293,7 +444,92 @@
   }
   .anon-label input[type=checkbox] { width: auto; cursor: pointer; accent-color: var(--accent); }
 
-  /* MODAL */
+  /* ── READING LIST VIEW ── */
+  .reading-list-view { animation: fadeUp .3s ease; }
+  .reading-list-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 28px;
+  }
+
+  /* ── PROFILE VIEW ── */
+  .profile-view { animation: fadeUp .3s ease; }
+  .profile-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .profile-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: rgba(201,169,110,0.15);
+    border: 2px solid rgba(201,169,110,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--accent);
+    margin: 0 auto 16px;
+  }
+  .profile-name { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 8px; }
+  .profile-stats { display: flex; gap: 24px; justify-content: center; margin-top: 16px; }
+  .profile-stat { text-align: center; }
+  .profile-stat-num { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+  .profile-stat-label { font-size: 0.75rem; color: var(--text2); }
+
+  /* ── ANALYTICS ── */
+  .analytics-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .analytics-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    color: var(--accent);
+  }
+  .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .analytics-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+  .analytics-num { font-size: 1.8rem; font-weight: 700; color: var(--accent); font-family: 'Playfair Display', serif; }
+  .analytics-label { font-size: 0.75rem; color: var(--text2); margin-top: 4px; }
+
+  /* ── FOLLOWING / AUTHOR PAGE ── */
+  .follow-btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .follow-btn:hover, .follow-btn.following { background: rgba(201,169,110,0.15); }
+  .follow-btn.following { color: var(--accent2); border-color: var(--accent2); }
+
+  /* ── SEARCH RESULTS ── */
+  .search-view { animation: fadeUp .3s ease; }
+  .search-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+    color: var(--text2);
+  }
+  .search-heading span { color: var(--text); }
+
+  /* ── MODAL ── */
   #modal-overlay {
     display: none;
     position: fixed; inset: 0; z-index: 200;
@@ -318,6 +554,8 @@
     gap: 12px;
     animation: fadeUp .25s ease;
     box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    max-height: 90vh;
+    overflow-y: auto;
   }
   .modal-title {
     font-family: 'Playfair Display', serif;
@@ -338,7 +576,7 @@
   .modal-switch a { color: var(--accent); cursor: pointer; text-decoration: underline; }
 
   .error-msg {
-    background: rgba(201, 110, 110, 0.15);
+    background: rgba(201,110,110,0.15);
     border: 1px solid rgba(201,110,110,0.4);
     color: #e89090;
     padding: 10px 14px;
@@ -348,7 +586,7 @@
   }
   .error-msg.show { display: block; }
 
-  /* TOAST */
+  /* ── TOAST ── */
   #toast {
     position: fixed; bottom: 30px; left: 50%;
     transform: translateX(-50%) translateY(20px);
@@ -371,21 +609,139 @@
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
+  /* ── PROMPTS BANNER ── */
+  .prompt-banner {
+    background: linear-gradient(135deg, rgba(201,169,110,0.08), rgba(201,169,110,0.03));
+    border: 1px solid rgba(201,169,110,0.2);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .prompt-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 4px; }
+  .prompt-text { font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; color: var(--text); }
+
+  /* ── SERIES SELECT ── */
+  .series-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  /* ── SVG ICONS ── */
+  .icon { width: 14px; height: 14px; display: inline-block; vertical-align: middle; }
+  .icon-sm { width: 12px; height: 12px; }
+  .icon-lg { width: 16px; height: 16px; }
+
   @media (max-width: 600px) {
-    nav { padding: 0 16px; }
+    nav { padding: 0 12px; gap: 8px; }
+    .nav-search { max-width: 140px; }
     #main { padding: 24px 14px 60px; }
     .story-full { padding: 24px 16px; }
     .story-title { font-size: 1.4rem; }
     #modal-box { padding: 28px 20px; }
+    .form-row { flex-direction: column; }
+    .analytics-grid { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
 <body>
 
+<!-- SVG ICON DEFS (inline, reusable) -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ic-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </symbol>
+  <symbol id="ic-heart-fill" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </symbol>
+  <symbol id="ic-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+  </symbol>
+  <symbol id="ic-bookmark-fill" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+  </symbol>
+  <symbol id="ic-comment" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </symbol>
+  <symbol id="ic-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </symbol>
+  <symbol id="ic-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+  </symbol>
+  <symbol id="ic-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+  </symbol>
+  <symbol id="ic-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </symbol>
+  <symbol id="ic-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+  </symbol>
+  <symbol id="ic-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+  </symbol>
+  <symbol id="ic-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+  </symbol>
+  <symbol id="ic-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </symbol>
+  <symbol id="ic-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+  </symbol>
+  <symbol id="ic-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </symbol>
+  <symbol id="ic-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </symbol>
+  <symbol id="ic-award" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+  </symbol>
+  <symbol id="ic-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  </symbol>
+  <symbol id="ic-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+  </symbol>
+  <symbol id="ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+  </symbol>
+  <symbol id="ic-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="9 18 15 12 9 6"/>
+  </symbol>
+  <symbol id="ic-bar-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+  </symbol>
+  <symbol id="ic-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+  </symbol>
+  <symbol id="ic-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+  </symbol>
+  <symbol id="ic-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+</svg>
+
 <nav>
   <div class="nav-logo" onclick="App.goFeed()">Az<span>ul</span></div>
+  <div class="nav-search">
+    <svg class="icon"><use href="#ic-search"/></svg>
+    <input id="nav-search-input" type="text" placeholder="Search stories…" onkeydown="if(event.key==='Enter')App.doSearch(this.value)"/>
+  </div>
   <div class="nav-center">
-    <button class="btn-primary" onclick="App.goWrite()">+ Write</button>
+    <button class="btn-primary" onclick="App.goWrite()">
+      <svg class="icon" style="margin-right:4px"><use href="#ic-pen"/></svg>Write
+    </button>
   </div>
   <div id="nav-auth"></div>
 </nav>
@@ -398,13 +754,11 @@
 
 <div id="toast"></div>
 
-<!-- Firebase via CDN (no bundler needed) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
-// ─── Firebase Init ───────────────────────────────────────────
 firebase.initializeApp({
   apiKey: "AIzaSyB1kOebyVKpGVCUoG6e5WBurOK-cqMTDDA",
   authDomain: "azul-azul-azul.firebaseapp.com",
@@ -414,20 +768,31 @@ firebase.initializeApp({
   appId: "1:544736797044:web:7863b3c74e71e10daacc21",
   measurementId: "G-LGJDK6MPQL"
 });
-
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
-// ─── App ─────────────────────────────────────────────────────
+const GENRES = ['Fiction','Non-Fiction','Poetry','Horror','Romance','Sci-Fi','Fantasy','Mystery','Personal','Humour','Travel','Other'];
+const PROMPTS = [
+  'Write about a door you were afraid to open.',
+  'The last message you never sent.',
+  'Describe the silence after something breaks.',
+  'A stranger who changed everything in five minutes.',
+  'The version of yourself you left behind.',
+  'Write from the perspective of your oldest object.',
+  'Begin with the words: "It was the wrong address."',
+  'Something you only admit at 3am.'
+];
+const weeklyPrompt = PROMPTS[Math.floor(Date.now()/604800000) % PROMPTS.length];
+
 const App = (() => {
   let user = null;
   let unsub = null;
   let page  = 'feed';
+  let activeGenre = null;
+  let activeTab = 'latest';
 
-  // ── helpers ──
-  function esc(s) {
-    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+  // ── HELPERS ──
+  const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   function ago(ts) {
     if (!ts) return '';
     const d = ts.toDate ? ts.toDate() : new Date(ts);
@@ -437,22 +802,33 @@ const App = (() => {
     if (s<86400) return Math.floor(s/3600)+'h ago';
     return Math.floor(s/86400)+'d ago';
   }
-  function toast(msg) {
+  function toast(msg,dur=3200) {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(t._tid);
-    t._tid = setTimeout(()=>t.classList.remove('show'), 3200);
+    t._tid = setTimeout(()=>t.classList.remove('show'), dur);
   }
-  function main() { return document.getElementById('main'); }
+  const main = () => document.getElementById('main');
   function stopUnsub() { if(unsub){unsub();unsub=null;} }
+  const icon = (id,cls='icon') => `<svg class="${cls}" aria-hidden="true"><use href="#ic-${id}"/></svg>`;
+  const readingList = () => JSON.parse(localStorage.getItem('azul_reading_list')||'[]');
+  function toggleReadingList(id) {
+    const list = readingList();
+    const idx = list.indexOf(id);
+    if (idx>-1) { list.splice(idx,1); localStorage.setItem('azul_reading_list',JSON.stringify(list)); return false; }
+    else { list.push(id); localStorage.setItem('azul_reading_list',JSON.stringify(list)); return true; }
+  }
+  function isSaved(id) { return readingList().includes(id); }
 
-  // ── nav ──
+  // ── NAV ──
   function renderNav() {
     const el = document.getElementById('nav-auth');
     if (user) {
       el.innerHTML = `
-        <span class="nav-user">✦ ${esc(user.displayName||user.email)}</span>
+        <button class="btn-ghost" style="gap:4px;display:inline-flex;align-items:center" onclick="App.goProfile()">
+          ${icon('user','icon')} <span class="nav-user">${esc(user.displayName||user.email)}</span>
+        </button>
         <button class="btn-ghost" onclick="App.signOut()">Sign out</button>`;
     } else {
       el.innerHTML = `
@@ -461,175 +837,407 @@ const App = (() => {
     }
   }
 
-  // ── feed ──
-  function goFeed() {
+  // ── FEED ──
+  function goFeed(genre) {
     page = 'feed';
+    if (genre !== undefined) activeGenre = genre;
     stopUnsub();
     main().innerHTML = `<div class="loading"><span class="spin">◌</span> Loading stories…</div>`;
-    const q = db.collection('stories').orderBy('createdAt','desc');
+    let q = db.collection('stories').where('visibility','in',['public',null]);
+    if (activeGenre) q = q.where('genre','==',activeGenre);
+    if (activeTab === 'latest') q = q.orderBy('createdAt','desc');
+    else q = q.orderBy('likeCount','desc');
     unsub = q.onSnapshot(snap => {
-      if (snap.empty) {
-        main().innerHTML = `<div class="empty-state">
-          <div class="empty-icon">✦</div>
+      let docs = snap.docs;
+      if (!docs.length) {
+        main().innerHTML = renderFeedShell(`<div class="empty-state">
+          <div class="empty-icon">${icon('book','icon-lg')}</div>
           <p>No stories yet. Be the first to share.</p>
           <button class="btn-primary" onclick="App.goWrite()">Write a story</button>
-        </div>`;
+        </div>`);
         return;
       }
-      main().innerHTML = `<div class="feed">${snap.docs.map(d=>cardHTML(d.id,d.data())).join('')}</div>`;
+      main().innerHTML = renderFeedShell(`<div class="feed">${docs.map(d=>cardHTML(d.id,d.data())).join('')}</div>`);
     }, err => {
-      main().innerHTML = `<div class="empty-state"><p style="color:#e89090">⚠ Could not load stories: ${esc(err.message)}</p></div>`;
+      main().innerHTML = `<div class="empty-state"><p style="color:#e89090">Could not load stories: ${esc(err.message)}</p></div>`;
     });
   }
 
+  function renderFeedShell(inner) {
+    const tabs = ['latest','popular'].map(t =>
+      `<button class="tab-btn ${activeTab===t?'active':''}" onclick="App.setTab('${t}')">${t==='latest'?'Latest':'Popular'}</button>`
+    ).join('');
+    const chips = GENRES.map(g =>
+      `<button class="genre-chip ${activeGenre===g?'active':''}" onclick="App.goFeed('${activeGenre===g?'':g}')">${esc(g)}</button>`
+    ).join('');
+    return `
+      <div class="prompt-banner">
+        <div>
+          <div class="prompt-label">Weekly Prompt</div>
+          <div class="prompt-text">"${esc(weeklyPrompt)}"</div>
+        </div>
+        <button class="btn-primary" onclick="App.writeWithPrompt()">Write it</button>
+      </div>
+      <div class="feed-tabs">${tabs}</div>
+      <div class="genre-bar">${chips}</div>
+      ${inner}`;
+  }
+
+  function setTab(t) { activeTab = t; goFeed(); }
+
   function cardHTML(id, d) {
     const liked = user && (d.likes||[]).includes(user.uid);
-    const author = d.anonymous ? '✦ Anonymous' : esc(d.authorName||'Unknown');
-    const preview = esc(d.body||'').substring(0,220) + ((d.body||'').length>220?'…':'');
+    const saved = isSaved(id);
+    const author = d.anonymous ? 'Anonymous' : esc(d.authorName||'Unknown');
+    const preview = esc(d.body||'').substring(0,200) + ((d.body||'').length>200?'…':'');
     const isOwner = user && user.uid===d.authorId;
+    const genreTag = d.genre ? `<span class="genre-tag">${esc(d.genre)}</span>` : '';
+    const seriesTag = d.series ? `<span class="genre-tag" style="color:var(--accent);border-color:rgba(201,169,110,0.3)">${icon('book','icon-sm')} ${esc(d.series)}</span>` : '';
     return `
     <article class="card" onclick="App.openStory('${id}')">
       <div class="card-header">
         <div class="card-meta">
           <span class="author-tag ${d.anonymous?'anon':''}">${author}</span>
           <span class="time-tag">${ago(d.createdAt)}</span>
+          ${genreTag}${seriesTag}
         </div>
-        ${isOwner?`<button class="btn-delete" onclick="event.stopPropagation();App.deleteStory('${id}')">✕</button>`:''}
+        ${isOwner?`<button class="btn-delete" onclick="event.stopPropagation();App.deleteStory('${id}')">${icon('trash','icon-sm')}</button>`:''}
       </div>
       <h2 class="card-title">${esc(d.title)}</h2>
       <p class="card-preview">${preview}</p>
       <div class="card-footer">
         <button class="react-btn ${liked?'liked':''}" onclick="event.stopPropagation();App.toggleLike('${id}',${liked})">
-          ${liked?'♥':'♡'} <span>${(d.likes||[]).length}</span>
+          ${liked?icon('heart-fill'):icon('heart')} <span>${(d.likes||[]).length}</span>
         </button>
         <button class="react-btn" onclick="event.stopPropagation();App.openStory('${id}')">
-          ◇ <span>${(d.comments||[]).length}</span>
+          ${icon('comment')} <span>${(d.comments||[]).length}</span>
+        </button>
+        <button class="react-btn ${saved?'saved':''}" onclick="event.stopPropagation();App.toggleSave('${id}',this)" title="${saved?'Remove from reading list':'Save to reading list'}">
+          ${saved?icon('bookmark-fill'):icon('bookmark')}
+        </button>
+        <button class="react-btn" onclick="event.stopPropagation();App.viewAuthor('${esc(d.authorId||'')}','${esc(d.authorName||'')}')" title="View author">
+          ${icon('user')}
         </button>
       </div>
     </article>`;
   }
 
-  // ── story ──
+  // ── STORY VIEW ──
   async function openStory(id) {
     page = 'story';
     stopUnsub();
     main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
     try {
+      // increment view count
+      db.collection('stories').doc(id).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(()=>{});
+
       const snap = await db.collection('stories').doc(id).get();
       if (!snap.exists) { main().innerHTML=`<p>Story not found.</p>`; return; }
       const d = snap.data();
       const liked = user && (d.likes||[]).includes(user.uid);
-      const author = d.anonymous ? '✦ Anonymous' : esc(d.authorName||'Unknown');
+      const saved = isSaved(id);
+      const author = d.anonymous ? 'Anonymous' : esc(d.authorName||'Unknown');
       const isOwner = user && user.uid===d.authorId;
       const comments = (d.comments||[]).length
-        ? (d.comments||[]).map(c=>`
+        ? [...(d.comments||[])].reverse().map(c=>`
           <div class="comment">
-            <span class="comment-author">${c.anonymous?'✦ Anonymous':esc(c.authorName||'Unknown')}</span>
+            <span class="comment-author">${c.anonymous?'Anonymous':esc(c.authorName||'Unknown')}</span>
             <span class="comment-time">${ago(c.createdAt)}</span>
             <p>${esc(c.text)}</p>
           </div>`).join('')
-        : `<p class="no-comments">No comments yet.</p>`;
+        : `<p class="no-comments">No comments yet. Be the first.</p>`;
+      const bodyHTML = renderStoryBody(d.body||'');
+      const seriesBadge = d.series ? `<div class="series-badge">${icon('book','icon-sm')} ${esc(d.series)}</div>` : '';
+      const genreDisp = d.genre ? `<span class="genre-tag">${esc(d.genre)}</span>` : '';
 
       main().innerHTML = `
         <div class="story-view">
-          <button class="back-btn" onclick="App.goFeed()">← Back to feed</button>
+          <button class="back-btn" onclick="App.goFeed()">${icon('arrow-left')} Back to feed</button>
           <div class="story-full">
+            ${seriesBadge}
             <div class="story-top">
               <span class="author-tag ${d.anonymous?'anon':''}">${author}</span>
               <span class="time-tag">${ago(d.createdAt)}</span>
-              ${isOwner?`<button class="btn-delete" onclick="App.deleteStory('${id}')">✕ Delete</button>`:''}
+              ${genreDisp}
+              ${d.views?`<span class="time-tag">${icon('eye','icon-sm')} ${d.views} views</span>`:''}
+              ${isOwner?`<button class="btn-delete" onclick="App.deleteStory('${id}')">${icon('trash','icon-sm')} Delete</button>`:''}
             </div>
             <h1 class="story-title">${esc(d.title)}</h1>
-            <div class="story-body">${esc(d.body).replace(/\n/g,'<br/>')}</div>
+            <div class="story-body">${bodyHTML}</div>
             <div class="story-actions">
               <button class="react-btn big ${liked?'liked':''}" id="like-btn" onclick="App.toggleLike('${id}',${liked},true)">
-                ${liked?'♥':'♡'} ${(d.likes||[]).length} likes
+                ${liked?icon('heart-fill'):icon('heart')} ${(d.likes||[]).length} likes
               </button>
+              <button class="react-btn big ${saved?'saved':''}" id="save-btn" onclick="App.toggleSaveStory('${id}')">
+                ${saved?icon('bookmark-fill'):icon('bookmark')} ${saved?'Saved':'Save'}
+              </button>
+              ${!d.anonymous && d.authorId ? `<button class="follow-btn" id="follow-btn-${d.authorId}" onclick="App.toggleFollow('${d.authorId}','${esc(d.authorName||'')}')">${icon('users','icon-sm')} Follow Author</button>` : ''}
             </div>
           </div>
           <div class="comments-section">
-            <h3 class="comments-heading">Comments</h3>
+            <h3 class="comments-heading">Comments <span style="font-size:.9rem;color:var(--text2);font-family:'DM Sans',sans-serif">${(d.comments||[]).length}</span></h3>
             <div id="comments-list">${comments}</div>
             <div class="comment-form">
-              <textarea id="comment-text" placeholder="Write a comment…" rows="3"></textarea>
+              <textarea id="comment-text" placeholder="Share your thoughts…" rows="3"></textarea>
               <div class="comment-controls">
                 <label class="anon-label">
                   <input type="checkbox" id="comment-anon"/> Post anonymously
                 </label>
-                <button class="btn-primary" onclick="App.postComment('${id}')">Post</button>
+                <button class="btn-primary" onclick="App.postComment('${id}')">${icon('pen','icon')} Comment</button>
               </div>
             </div>
           </div>
+        </div>`;
+
+      // Check follow state
+      if (user && d.authorId && !d.anonymous) {
+        checkFollowState(d.authorId);
+      }
+    } catch(e) {
+      main().innerHTML = `<p style="color:#e89090">Error: ${esc(e.message)}</p>`;
+    }
+  }
+
+  function renderStoryBody(text) {
+    // Render plain text with line breaks, or pass through if it contains HTML tags (from rich editor)
+    if (text.includes('<') && text.includes('>')) {
+      // Already HTML from rich editor — sanitize and return
+      return text
+        .replace(/<script[\s\S]*?<\/script>/gi,'')
+        .replace(/on\w+="[^"]*"/gi,'');
+    }
+    return esc(text).replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br/>').replace(/^/,'<p>').replace(/$/,'</p>');
+  }
+
+  // ── FOLLOW ──
+  async function checkFollowState(authorId) {
+    if (!user) return;
+    const btn = document.getElementById('follow-btn-'+authorId);
+    if (!btn) return;
+    try {
+      const snap = await db.collection('users').doc(user.uid).get();
+      const data = snap.data()||{};
+      const following = (data.following||[]);
+      if (following.includes(authorId)) {
+        btn.classList.add('following');
+        btn.innerHTML = icon('users','icon-sm')+' Following';
+      }
+    } catch(e){}
+  }
+
+  async function toggleFollow(authorId, authorName) {
+    if (!user) { toast('Sign in to follow authors.'); return; }
+    if (authorId === user.uid) { toast("You can't follow yourself."); return; }
+    try {
+      const ref = db.collection('users').doc(user.uid);
+      const snap = await ref.get();
+      const data = snap.data()||{};
+      const following = data.following||[];
+      const isFollowing = following.includes(authorId);
+      await ref.set({
+        following: isFollowing
+          ? firebase.firestore.FieldValue.arrayRemove(authorId)
+          : firebase.firestore.FieldValue.arrayUnion(authorId)
+      }, {merge: true});
+      const btn = document.getElementById('follow-btn-'+authorId);
+      if (btn) {
+        if (isFollowing) {
+          btn.classList.remove('following');
+          btn.innerHTML = icon('users','icon-sm')+` Follow Author`;
+          toast('Unfollowed '+authorName);
+        } else {
+          btn.classList.add('following');
+          btn.innerHTML = icon('users','icon-sm')+' Following';
+          toast('Now following '+authorName);
+        }
+      }
+    } catch(e) { toast('Error: '+e.message); }
+  }
+
+  // ── READING LIST ──
+  function toggleSave(id, btn) {
+    const saved = toggleReadingList(id);
+    btn.className = `react-btn${saved?' saved':''}`;
+    btn.innerHTML = saved ? icon('bookmark-fill') : icon('bookmark');
+    toast(saved ? 'Added to reading list.' : 'Removed from reading list.');
+  }
+
+  function toggleSaveStory(id) {
+    const saved = toggleReadingList(id);
+    const btn = document.getElementById('save-btn');
+    if (btn) {
+      btn.className = `react-btn big${saved?' saved':''}`;
+      btn.innerHTML = `${saved?icon('bookmark-fill'):icon('bookmark')} ${saved?'Saved':'Save'}`;
+    }
+    toast(saved ? 'Added to reading list.' : 'Removed from reading list.');
+  }
+
+  async function goReadingList() {
+    page = 'reading-list';
+    stopUnsub();
+    main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
+    const ids = readingList();
+    if (!ids.length) {
+      main().innerHTML = `
+        <div class="reading-list-view">
+          <button class="back-btn" onclick="App.goFeed()">${icon('arrow-left')} Back</button>
+          <h2 class="reading-list-heading">${icon('bookmark','icon-lg')} Reading List</h2>
+          <div class="empty-state">
+            <p>Your reading list is empty.</p>
+            <button class="btn-primary" onclick="App.goFeed()">Explore stories</button>
+          </div>
+        </div>`;
+      return;
+    }
+    try {
+      const promises = ids.map(id => db.collection('stories').doc(id).get());
+      const snaps = await Promise.all(promises);
+      const cards = snaps.filter(s=>s.exists).map(s=>cardHTML(s.id,s.data())).join('');
+      main().innerHTML = `
+        <div class="reading-list-view">
+          <button class="back-btn" onclick="App.goFeed()">${icon('arrow-left')} Back</button>
+          <h2 class="reading-list-heading">${icon('bookmark','icon-lg')} Reading List</h2>
+          <div class="feed">${cards}</div>
         </div>`;
     } catch(e) {
       main().innerHTML = `<p style="color:#e89090">Error: ${esc(e.message)}</p>`;
     }
   }
 
-  // ── write ──
-  function goWrite() {
+  // ── WRITE ──
+  function goWrite(promptText) {
     page = 'write';
     stopUnsub();
+    const seriesOpts = '<option value="">No series</option>';
     main().innerHTML = `
       <div class="write-view">
-        <button class="back-btn" onclick="App.goFeed()">← Back</button>
+        <button class="back-btn" onclick="App.goFeed()">${icon('arrow-left')} Back</button>
         <h2 class="write-heading">Tell your story</h2>
+        ${promptText?`<div style="background:rgba(201,169,110,0.07);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:14px 18px;margin-bottom:20px;font-style:italic;color:var(--accent);font-size:.9rem">"${esc(promptText)}"</div>`:''}
         <input type="text" class="story-title-input" id="w-title" placeholder="Give it a title…" maxlength="120"/>
-        <textarea class="story-body-input" id="w-body" placeholder="Write anything. No rules." rows="14"></textarea>
+
+        <div class="form-row">
+          <div>
+            <label class="form-label">Genre</label>
+            <select id="w-genre">
+              <option value="">Select genre…</option>
+              ${GENRES.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Series / Collection</label>
+            <input type="text" id="w-series" placeholder="e.g. The Midnight Letters" maxlength="80"/>
+          </div>
+        </div>
+
+        <div class="form-row" style="margin-bottom:14px">
+          <div>
+            <label class="form-label">Visibility</label>
+            <select id="w-visibility">
+              <option value="public">${icon('globe','icon-sm')} Public</option>
+              <option value="unlisted">${icon('link','icon-sm')} Unlisted</option>
+              <option value="private">${icon('lock','icon-sm')} Private</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="form-label">Story</label>
+        <div class="editor-toolbar" id="editor-toolbar">
+          <button class="tool-btn" title="Bold" onmousedown="event.preventDefault();App.fmt('bold')"><strong>B</strong></button>
+          <button class="tool-btn" title="Italic" onmousedown="event.preventDefault();App.fmt('italic')"><em>I</em></button>
+          <button class="tool-btn" title="Underline" onmousedown="event.preventDefault();App.fmt('underline')"><u>U</u></button>
+          <div class="tool-sep"></div>
+          <button class="tool-btn" title="Heading 2" onmousedown="event.preventDefault();App.fmtBlock('h2')">H2</button>
+          <button class="tool-btn" title="Heading 3" onmousedown="event.preventDefault();App.fmtBlock('h3')">H3</button>
+          <button class="tool-btn" title="Blockquote" onmousedown="event.preventDefault();App.fmtBlock('blockquote')">"</button>
+          <div class="tool-sep"></div>
+          <button class="tool-btn" title="Insert image URL" onmousedown="event.preventDefault();App.insertImage()">${icon('image','icon-sm')}</button>
+        </div>
+        <div class="story-body-editor" id="w-body" contenteditable="true" data-placeholder="Write anything. No rules." spellcheck="true"></div>
+
         <div class="write-footer">
-          <label class="anon-label">
-            <input type="checkbox" id="w-anon" ${!user?'checked disabled':''}/>
-            Post anonymously${!user?' (you\'re not signed in)':''}
-          </label>
-          <button class="btn-primary large" id="publish-btn" onclick="App.submitStory()">Publish ✦</button>
+          <div class="write-options">
+            <label class="anon-label">
+              <input type="checkbox" id="w-anon" ${!user?'checked disabled':''}/>
+              Post anonymously${!user?' (not signed in)':''}
+            </label>
+          </div>
+          <button class="btn-primary large" id="publish-btn" onclick="App.submitStory()">
+            ${icon('pen','icon')} Publish
+          </button>
         </div>
       </div>`;
   }
 
+  function writeWithPrompt() { goWrite(weeklyPrompt); }
+
+  // ── RICH EDITOR ──
+  function fmt(cmd) { document.execCommand(cmd, false, null); }
+  function fmtBlock(tag) { document.execCommand('formatBlock', false, tag); }
+  function insertImage() {
+    const url = prompt('Image URL:');
+    if (url) document.execCommand('insertHTML', false, `<img src="${url.replace(/"/g,'')}" alt="story image"/>`);
+  }
+
   async function submitStory() {
-    const title = document.getElementById('w-title').value.trim();
-    const body  = document.getElementById('w-body').value.trim();
-    const anon  = document.getElementById('w-anon').checked || !user;
+    const title = (document.getElementById('w-title').value||'').trim();
+    const bodyEl = document.getElementById('w-body');
+    const body = bodyEl ? bodyEl.innerHTML.trim() : '';
+    const bodyText = bodyEl ? bodyEl.innerText.trim() : '';
+    const anon = document.getElementById('w-anon').checked || !user;
+    const genre = document.getElementById('w-genre').value;
+    const series = (document.getElementById('w-series').value||'').trim();
+    const visibility = document.getElementById('w-visibility').value;
     if (!title) { toast('Please add a title.'); return; }
-    if (!body)  { toast('Please write your story.'); return; }
+    if (!bodyText) { toast('Please write your story.'); return; }
     const btn = document.getElementById('publish-btn');
-    btn.disabled = true; btn.textContent = 'Publishing…';
+    btn.disabled = true; btn.innerHTML = icon('pen','icon')+' Publishing…';
     try {
       await db.collection('stories').add({
         title, body,
+        genre: genre||null,
+        series: series||null,
+        visibility: visibility||'public',
         anonymous: anon,
-        authorId:   user ? user.uid  : null,
+        authorId: user ? user.uid : null,
         authorName: user ? (user.displayName||user.email) : null,
         likes: [],
+        likeCount: 0,
         comments: [],
+        views: 0,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      toast('Story published! ✦');
+      toast('Story published!');
       goFeed();
     } catch(e) {
-      toast('Error publishing: ' + e.message);
-      btn.disabled=false; btn.textContent='Publish ✦';
+      toast('Error publishing: '+e.message);
+      btn.disabled=false; btn.innerHTML=icon('pen','icon')+' Publish';
     }
   }
 
-  // ── like ──
+  // ── LIKE ──
   async function toggleLike(id, liked, reload) {
     if (!user) { toast('Sign in to like stories.'); return; }
     try {
       await db.collection('stories').doc(id).update({
         likes: liked
           ? firebase.firestore.FieldValue.arrayRemove(user.uid)
-          : firebase.firestore.FieldValue.arrayUnion(user.uid)
+          : firebase.firestore.FieldValue.arrayUnion(user.uid),
+        likeCount: firebase.firestore.FieldValue.increment(liked?-1:1)
       });
       if (reload) openStory(id);
+      else goFeed();
     } catch(e) { toast('Error: '+e.message); }
   }
 
-  // ── comment ──
+  // ── COMMENT ──
   async function postComment(storyId) {
-    const text = document.getElementById('comment-text').value.trim();
+    const textEl = document.getElementById('comment-text');
+    const text = textEl ? textEl.value.trim() : '';
     const anon = document.getElementById('comment-anon').checked || !user;
     if (!text) { toast('Write something first.'); return; }
+    const btn = document.querySelector('.comment-form .btn-primary');
+    if(btn){btn.disabled=true;}
     try {
       await db.collection('stories').doc(storyId).update({
         comments: firebase.firestore.FieldValue.arrayUnion({
@@ -640,12 +1248,15 @@ const App = (() => {
           createdAt: new Date().toISOString()
         })
       });
-      document.getElementById('comment-text').value='';
+      if(textEl) textEl.value='';
       openStory(storyId);
-    } catch(e) { toast('Error: '+e.message); }
+    } catch(e) {
+      toast('Error: '+e.message);
+      if(btn){btn.disabled=false;}
+    }
   }
 
-  // ── delete ──
+  // ── DELETE ──
   async function deleteStory(id) {
     if (!confirm('Delete this story forever?')) return;
     try {
@@ -655,14 +1266,135 @@ const App = (() => {
     } catch(e) { toast('Error: '+e.message); }
   }
 
-  // ── modal ──
+  // ── SEARCH ──
+  function doSearch(query) {
+    query = (query||'').trim();
+    if (!query) { goFeed(); return; }
+    page = 'search';
+    stopUnsub();
+    main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
+    const q = db.collection('stories').where('visibility','in',['public',null]).orderBy('createdAt','desc').limit(200);
+    q.get().then(snap => {
+      const ql = query.toLowerCase();
+      const results = snap.docs.filter(d => {
+        const data = d.data();
+        return (data.title||'').toLowerCase().includes(ql)
+          || (data.authorName||'').toLowerCase().includes(ql)
+          || (data.genre||'').toLowerCase().includes(ql)
+          || (data.series||'').toLowerCase().includes(ql);
+      });
+      main().innerHTML = `
+        <div class="search-view">
+          <button class="back-btn" onclick="App.goFeed()">${icon('arrow-left')} Back</button>
+          <h2 class="search-heading">${results.length} result${results.length!==1?'s':''} for "<span>${esc(query)}</span>"</h2>
+          ${results.length
+            ? `<div class="feed">${results.map(d=>cardHTML(d.id,d.data())).join('')}</div>`
+            : `<div class="empty-state"><p>No stories match that search.</p></div>`}
+        </div>`;
+    }).catch(e => {
+      main().innerHTML = `<p style="color:#e89090">Search error: ${esc(e.message)}</p>`;
+    });
+  }
+
+  // ── AUTHOR PAGE ──
+  async function viewAuthor(authorId, authorName) {
+    if (!authorId || authorId==='null') return;
+    page = 'author';
+    stopUnsub();
+    main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
+    try {
+      const snap = await db.collection('stories').where('authorId','==',authorId).where('anonymous','==',false).orderBy('createdAt','desc').get();
+      const stories = snap.docs;
+      const totalLikes = stories.reduce((sum,d)=>sum+((d.data().likes||[]).length),0);
+      const totalViews = stories.reduce((sum,d)=>sum+(d.data().views||0),0);
+      let isFollowing = false;
+      if (user) {
+        const usnap = await db.collection('users').doc(user.uid).get();
+        isFollowing = ((usnap.data()||{}).following||[]).includes(authorId);
+      }
+      main().innerHTML = `
+        <div class="profile-view">
+          <button class="back-btn" onclick="App.goFeed()">${icon('arrow-left')} Back</button>
+          <div class="profile-header">
+            <div class="profile-avatar">${esc((authorName||'?')[0].toUpperCase())}</div>
+            <div class="profile-name">${esc(authorName||'Author')}</div>
+            ${user && user.uid!==authorId
+              ? `<button class="follow-btn ${isFollowing?'following':''}" id="follow-btn-${authorId}" onclick="App.toggleFollow('${authorId}','${esc(authorName||'')}')" style="margin-top:12px">
+                  ${icon('users','icon-sm')} ${isFollowing?'Following':'Follow'}
+                </button>`
+              : ''}
+            <div class="profile-stats">
+              <div class="profile-stat"><div class="profile-stat-num">${stories.length}</div><div class="profile-stat-label">Stories</div></div>
+              <div class="profile-stat"><div class="profile-stat-num">${totalLikes}</div><div class="profile-stat-label">Likes</div></div>
+              <div class="profile-stat"><div class="profile-stat-num">${totalViews}</div><div class="profile-stat-label">Views</div></div>
+            </div>
+          </div>
+          ${stories.length
+            ? `<div class="feed">${stories.map(d=>cardHTML(d.id,d.data())).join('')}</div>`
+            : `<div class="empty-state"><p>No public stories yet.</p></div>`}
+        </div>`;
+    } catch(e) {
+      main().innerHTML = `<p style="color:#e89090">Error: ${esc(e.message)}</p>`;
+    }
+  }
+
+  // ── MY PROFILE ──
+  async function goProfile() {
+    if (!user) { openModal('login'); return; }
+    page = 'profile';
+    stopUnsub();
+    main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
+    try {
+      const snap = await db.collection('stories').where('authorId','==',user.uid).orderBy('createdAt','desc').get();
+      const stories = snap.docs;
+      const totalLikes = stories.reduce((sum,d)=>sum+((d.data().likes||[]).length),0);
+      const totalViews = stories.reduce((sum,d)=>sum+(d.data().views||0),0);
+      const totalComments = stories.reduce((sum,d)=>sum+((d.data().comments||[]).length),0);
+      main().innerHTML = `
+        <div class="profile-view">
+          <button class="back-btn" onclick="App.goFeed()">${icon('arrow-left')} Back</button>
+          <div class="profile-header">
+            <div class="profile-avatar">${esc((user.displayName||user.email||'?')[0].toUpperCase())}</div>
+            <div class="profile-name">${esc(user.displayName||user.email)}</div>
+            <div style="color:var(--text2);font-size:.83rem;margin-top:4px">${esc(user.email)}</div>
+            <div class="profile-stats">
+              <div class="profile-stat"><div class="profile-stat-num">${stories.length}</div><div class="profile-stat-label">Stories</div></div>
+              <div class="profile-stat"><div class="profile-stat-num">${totalLikes}</div><div class="profile-stat-label">Likes</div></div>
+              <div class="profile-stat"><div class="profile-stat-num">${totalViews}</div><div class="profile-stat-label">Views</div></div>
+            </div>
+          </div>
+          <div class="analytics-section">
+            <h3 class="analytics-heading">${icon('bar-chart','icon-sm')} Analytics</h3>
+            <div class="analytics-grid">
+              <div class="analytics-card"><div class="analytics-num">${stories.length}</div><div class="analytics-label">Total Stories</div></div>
+              <div class="analytics-card"><div class="analytics-num">${totalLikes}</div><div class="analytics-label">Total Likes</div></div>
+              <div class="analytics-card"><div class="analytics-num">${totalViews}</div><div class="analytics-label">Total Views</div></div>
+              <div class="analytics-card"><div class="analytics-num">${totalComments}</div><div class="analytics-label">Comments Received</div></div>
+              <div class="analytics-card"><div class="analytics-num">${readingList().length}</div><div class="analytics-label">Reading List</div></div>
+              <div class="analytics-card" style="cursor:pointer" onclick="App.goReadingList()">
+                <div class="analytics-num" style="font-size:1.2rem">${icon('bookmark','icon-lg')}</div>
+                <div class="analytics-label">View Reading List</div>
+              </div>
+            </div>
+          </div>
+          <h3 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:20px;color:var(--text2)">Your Stories</h3>
+          ${stories.length
+            ? `<div class="feed">${stories.map(d=>cardHTML(d.id,d.data())).join('')}</div>`
+            : `<div class="empty-state"><p>You haven't published any stories yet.</p><button class="btn-primary" onclick="App.goWrite()">Write your first story</button></div>`}
+        </div>`;
+    } catch(e) {
+      main().innerHTML = `<p style="color:#e89090">Error: ${esc(e.message)}</p>`;
+    }
+  }
+
+  // ── MODAL ──
   function openModal(type) {
     const overlay = document.getElementById('modal-overlay');
-    const box     = document.getElementById('modal-box');
+    const box = document.getElementById('modal-box');
     overlay.classList.add('visible');
     if (type==='register') {
       box.innerHTML = `
-        <button class="modal-close" onclick="App.closeModal()">✕</button>
+        <button class="modal-close" onclick="App.closeModal()">${icon('x')}</button>
         <h2 class="modal-title">Create account</h2>
         <div class="error-msg" id="modal-err"></div>
         <input type="text"     id="r-name"  placeholder="Your name" autocomplete="name"/>
@@ -672,7 +1404,7 @@ const App = (() => {
         <p class="modal-switch">Already have an account? <a onclick="App.openModal('login')">Sign in</a></p>`;
     } else {
       box.innerHTML = `
-        <button class="modal-close" onclick="App.closeModal()">✕</button>
+        <button class="modal-close" onclick="App.closeModal()">${icon('x')}</button>
         <h2 class="modal-title">Welcome back</h2>
         <div class="error-msg" id="modal-err"></div>
         <input type="email"    id="l-email" placeholder="Email address" autocomplete="email"/>
@@ -688,24 +1420,17 @@ const App = (() => {
     el.textContent = msg;
     el.classList.add('show');
   }
+  function closeModal() { document.getElementById('modal-overlay').classList.remove('visible'); }
+  function modalClickOutside(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
 
-  function closeModal() {
-    document.getElementById('modal-overlay').classList.remove('visible');
-  }
-
-  function modalClickOutside(e) {
-    if (e.target === document.getElementById('modal-overlay')) closeModal();
-  }
-
-  // ── auth ──
+  // ── AUTH ──
   async function doRegister() {
     const name  = document.getElementById('r-name').value.trim();
     const email = document.getElementById('r-email').value.trim();
     const pass  = document.getElementById('r-pass').value;
     if (!name)  { showModalError('Please enter your name.'); return; }
     if (!email) { showModalError('Please enter your email.'); return; }
-    if (!pass)  { showModalError('Please enter a password.'); return; }
-    if (pass.length < 6) { showModalError('Password must be at least 6 characters.'); return; }
+    if (pass.length<6) { showModalError('Password must be at least 6 characters.'); return; }
     const btn = document.getElementById('modal-btn');
     btn.disabled=true; btn.textContent='Creating account…';
     try {
@@ -714,19 +1439,18 @@ const App = (() => {
       user = auth.currentUser;
       closeModal();
       renderNav();
-      toast(`Welcome to Azul, ${name}! ✦`);
+      toast(`Welcome to Azul, ${name}!`);
       if (page==='feed') goFeed();
     } catch(e) {
       btn.disabled=false; btn.textContent='Create account';
       const msgs = {
-        'auth/email-already-in-use': 'That email is already registered. Try signing in.',
+        'auth/email-already-in-use': 'That email is already registered.',
         'auth/invalid-email': 'Invalid email address.',
-        'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
-        'auth/operation-not-allowed': '⚠ Email/password sign-in is not enabled. Go to Firebase Console → Authentication → Sign-in method → enable Email/Password.',
-        'auth/network-request-failed': 'Network error. Check your internet connection.',
-        'auth/configuration-not-found': '⚠ Firebase Auth is not configured. Enable Email/Password in Firebase Console → Authentication → Sign-in method.',
+        'auth/weak-password': 'Password is too weak.',
+        'auth/operation-not-allowed': 'Email/password sign-in not enabled in Firebase Console.',
+        'auth/network-request-failed': 'Network error.',
       };
-      showModalError(msgs[e.code] || e.message);
+      showModalError(msgs[e.code]||e.message);
     }
   }
 
@@ -740,7 +1464,7 @@ const App = (() => {
     try {
       await auth.signInWithEmailAndPassword(email, pass);
       closeModal();
-      toast('Signed in ✦');
+      toast('Signed in!');
     } catch(e) {
       btn.disabled=false; btn.textContent='Sign in';
       const msgs = {
@@ -749,10 +1473,8 @@ const App = (() => {
         'auth/invalid-email': 'Invalid email address.',
         'auth/invalid-credential': 'Wrong email or password.',
         'auth/too-many-requests': 'Too many attempts. Try again later.',
-        'auth/operation-not-allowed': '⚠ Email/password sign-in is not enabled in Firebase Console.',
-        'auth/network-request-failed': 'Network error. Check your internet connection.',
       };
-      showModalError(msgs[e.code] || e.message);
+      showModalError(msgs[e.code]||e.message);
     }
   }
 
@@ -762,21 +1484,27 @@ const App = (() => {
     goFeed();
   }
 
-  // ── auth listener ──
-  auth.onAuthStateChanged(u => {
-    user = u;
-    renderNav();
-  });
+  // ── AUTH LISTENER ──
+  auth.onAuthStateChanged(u => { user=u; renderNav(); });
 
-  // ── init ──
+  // ── INIT ──
   window.addEventListener('DOMContentLoaded', () => {
     renderNav();
     goFeed();
+    // Hook up nav search on input enter
+    const si = document.getElementById('nav-search-input');
+    if(si) si.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(si.value); });
   });
 
-  return { goFeed, goWrite, openStory, submitStory, toggleLike, postComment,
-           deleteStory, openModal, closeModal, modalClickOutside,
-           doRegister, doLogin, signOut };
+  return {
+    goFeed, goWrite, writeWithPrompt, openStory, submitStory,
+    toggleLike, postComment, deleteStory,
+    toggleSave, toggleSaveStory, goReadingList,
+    openModal, closeModal, modalClickOutside,
+    doRegister, doLogin, signOut,
+    doSearch, viewAuthor, goProfile, toggleFollow, checkFollowState,
+    setTab, fmt, fmtBlock, insertImage
+  };
 })();
 </script>
 </body>
