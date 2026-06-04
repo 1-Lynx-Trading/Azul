@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Azul — Share Your Story</title>
+
+<!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    signOut, onAuthStateChanged, updateProfile
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    getFirestore, collection, addDoc, getDocs, doc, updateDoc,
+    arrayUnion, arrayRemove, onSnapshot, query, orderBy, serverTimestamp,
+    getDoc, deleteDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB1kOebyVKpGVCUoG6e5WBurOK-cqMTDDA",
+    authDomain: "azul-azul-azul.firebaseapp.com",
+    projectId: "azul-azul-azul",
+    storageBucket: "azul-azul-azul.firebasestorage.app",
+    messagingSenderId: "544736797044",
+    appId: "1:544736797044:web:7863b3c74e71e10daacc21",
+    measurementId: "G-LGJDK6MPQL"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let unsubscribeFeed = null;
+
+  /* ─── AUTH STATE ─── */
+  onAuthStateChanged(auth, user => {
+    currentUser = user;
+    renderNav();
+    if (window._currentPage === 'feed' || !window._currentPage) loadFeed();
+  });
+
+  /* ─── HELPERS ─── */
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function ago(ts) {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    const s = Math.floor((Date.now() - d) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s/60) + 'm ago';
+    if (s < 86400) return Math.floor(s/3600) + 'h ago';
+    return Math.floor(s/86400) + 'd ago';
+  }
+
+  /* ─── NAV ─── */
+  function renderNav() {
+    const nav = document.getElementById('nav-auth');
+    if (currentUser) {
+      nav.innerHTML = `
+        <span class="nav-user">✦ ${esc(currentUser.displayName || currentUser.email)}</span>
+        <button class="btn-ghost" onclick="window._signOut()">Sign out</button>
+      `;
+    } else {
+      nav.innerHTML = `
+        <button class="btn-ghost" onclick="showModal('login')">Sign in</button>
+        <button class="btn-primary" onclick="showModal('register')">Join</button>
+      `;
+    }
+  }
+
+  /* ─── FEED ─── */
+  async function loadFeed() {
+    window._currentPage = 'feed';
+    const main = document.getElementById('main');
+    main.innerHTML = `<div class="loading"><span class="spin">◌</span> Loading stories…</div>`;
+
+    if (unsubscribeFeed) unsubscribeFeed();
+
+    const q = query(collection(db, 'stories'), orderBy('createdAt', 'desc'));
+    unsubscribeFeed = onSnapshot(q, snap => {
+      if (snap.empty) {
+        main.innerHTML = `<div class="empty-state">
+          <div class="empty-icon">✦</div>
+          <p>No stories yet. Be the first to share.</p>
+          <button class="btn-primary" onclick="window._showWritePage()">Write a story</button>
+        </div>`;
+        return;
+      }
+      const cards = snap.docs.map(d => storyCard(d.id, d.data())).join('');
+      main.innerHTML = `<div class="feed">${cards}</div>`;
+    });
+  }
+
+  function storyCard(id, data) {
+    const liked = currentUser && (data.likes || []).includes(currentUser.uid);
+    const likeCount = (data.likes || []).length;
+    const commentCount = (data.comments || []).length;
+    const isOwner = currentUser && currentUser.uid === data.authorId;
+    const authorLabel = data.anonymous ? '✦ Anonymous' : esc(data.authorName || 'Unknown');
+    const preview = esc(data.body || '').substring(0, 220) + (data.body?.length > 220 ? '…' : '');
+
+    return `
+    <article class="card" onclick="window._openStory('${id}')">
+      <div class="card-header">
+        <div class="card-meta">
+          <span class="author-tag ${data.anonymous ? 'anon' : ''}">${authorLabel}</span>
+          <span class="time-tag">${ago(data.createdAt)}</span>
+        </div>
+        ${isOwner ? `<button class="btn-delete" onclick="event.stopPropagation();window._deleteStory('${id}')">✕</button>` : ''}
+      </div>
+      <h2 class="card-title">${esc(data.title)}</h2>
+      <p class="card-preview">${preview}</p>
+      <div class="card-footer">
+        <button class="react-btn ${liked ? 'liked' : ''}" onclick="event.stopPropagation();window._toggleLike('${id}', ${liked})">
+          ${liked ? '♥' : '♡'} <span>${likeCount}</span>
+        </button>
+        <button class="react-btn" onclick="event.stopPropagation();window._openStory('${id}')">
+          ◇ <span>${commentCount}</span>
+        </button>
+      </div>
+    </article>`;
+  }
+
+  /* ─── OPEN STORY ─── */
+  async function openStory(id) {
+    window._currentPage = 'story';
+    if (unsubscribeFeed) { unsubscribeFeed(); unsubscribeFeed = null; }
+    const main = document.getElementById('main');
+    main.innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
+
+    const ref = doc(db, 'stories', id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) { main.innerHTML = `<p>Story not found.</p>`; return; }
+    const data = snap.data();
+    const liked = currentUser && (data.likes || []).includes(currentUser.uid);
+    const authorLabel = data.anonymous ? '✦ Anonymous' : esc(data.authorName || 'Unknown');
+    const isOwner = currentUser && currentUser.uid === data.authorId;
+
+    const comments = (data.comments || []).map(c => `
+      <div class="comment">
+        <span class="comment-author">${c.anonymous ? '✦ Anonymous' : esc(c.authorName || 'Unknown')}</span>
+        <span class="comment-time">${ago(c.createdAt)}</span>
+        <p>${esc(c.text)}</p>
+      </div>`).join('') || `<p class="no-comments">No comments yet. Start the conversation.</p>`;
+
+    main.innerHTML = `
+      <div class="story-view">
+        <button class="back-btn" onclick="window._loadFeed()">← Back to feed</button>
+        <div class="story-full">
+          <div class="story-top">
+            <span class="author-tag ${data.anonymous ? 'anon' : ''}">${authorLabel}</span>
+            <span class="time-tag">${ago(data.createdAt)}</span>
+            ${isOwner ? `<button class="btn-delete" onclick="window._deleteStory('${id}')">✕ Delete</button>` : ''}
+          </div>
+          <h1 class="story-title">${esc(data.title)}</h1>
+          <div class="story-body">${esc(data.body).replace(/\n/g,'<br/>')}</div>
+          <div class="story-actions">
+            <button class="react-btn big ${liked ? 'liked' : ''}" onclick="window._toggleLike('${id}', ${liked}, true)">
+              ${liked ? '♥' : '♡'} ${(data.likes||[]).length} likes
+            </button>
+          </div>
+        </div>
+
+        <div class="comments-section">
+          <h3 class="comments-heading">Comments</h3>
+          <div id="comments-list">${comments}</div>
+
+          <div class="comment-form">
+            <textarea id="comment-text" placeholder="Write a comment…" rows="3"></textarea>
+            <div class="comment-controls">
+              <label class="anon-label">
+                <input type="checkbox" id="comment-anon" /> Post anonymously
+              </label>
+              <button class="btn-primary" onclick="window._postComment('${id}')">Post</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /* ─── WRITE PAGE ─── */
+  function showWritePage() {
+    window._currentPage = 'write';
+    if (unsubscribeFeed) { unsubscribeFeed(); unsubscribeFeed = null; }
+    const main = document.getElementById('main');
+    main.innerHTML = `
+      <div class="write-view">
+        <button class="back-btn" onclick="window._loadFeed()">← Back</button>
+        <h2 class="write-heading">Tell your story</h2>
+        <input type="text" id="story-title" class="story-input" placeholder="Give it a title…" maxlength="100"/>
+        <textarea id="story-body" class="story-textarea" placeholder="Write anything. No rules." rows="14"></textarea>
+        <div class="write-footer">
+          <label class="anon-label">
+            <input type="checkbox" id="story-anon" ${!currentUser ? 'checked disabled' : ''} />
+            Post anonymously${!currentUser ? ' (required — not signed in)' : ''}
+          </label>
+          <button class="btn-primary large" onclick="window._submitStory()">Publish ✦</button>
+        </div>
+      </div>`;
+  }
+
+  /* ─── SUBMIT STORY ─── */
+  async function submitStory() {
+    const title = document.getElementById('story-title').value.trim();
+    const body = document.getElementById('story-body').value.trim();
+    const anon = document.getElementById('story-anon').checked || !currentUser;
+
+    if (!title || !body) { showToast('Please add a title and story.'); return; }
+
+    const btn = document.querySelector('.write-view .btn-primary');
+    btn.disabled = true; btn.textContent = 'Publishing…';
+
+    try {
+      await addDoc(collection(db, 'stories'), {
+        title,
+        body,
+        anonymous: anon,
+        authorId: currentUser ? currentUser.uid : null,
+        authorName: currentUser ? (currentUser.displayName || currentUser.email) : null,
+        likes: [],
+        comments: [],
+        createdAt: serverTimestamp()
+      });
+      showToast('Story published! ✦');
+      loadFeed();
+    } catch (e) {
+      showToast('Error: ' + e.message);
+      btn.disabled = false; btn.textContent = 'Publish ✦';
+    }
+  }
+
+  /* ─── LIKE ─── */
+  async function toggleLike(id, liked, reload) {
+    if (!currentUser) { showToast('Sign in to like stories.'); return; }
+    const ref = doc(db, 'stories', id);
+    try {
+      await updateDoc(ref, {
+        likes: liked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
+      });
+      if (reload) openStory(id);
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  /* ─── COMMENT ─── */
+  async function postComment(storyId) {
+    const text = document.getElementById('comment-text').value.trim();
+    const anon = document.getElementById('comment-anon').checked || !currentUser;
+    if (!text) { showToast('Write something first.'); return; }
+
+    const ref = doc(db, 'stories', storyId);
+    try {
+      await updateDoc(ref, {
+        comments: arrayUnion({
+          text,
+          anonymous: anon,
+          authorName: currentUser ? (currentUser.displayName || currentUser.email) : null,
+          authorId: currentUser ? currentUser.uid : null,
+          createdAt: new Date().toISOString()
+        })
+      });
+      document.getElementById('comment-text').value = '';
+      openStory(storyId);
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  /* ─── DELETE ─── */
+  async function deleteStory(id) {
+    if (!confirm('Delete this story forever?')) return;
+    try {
+      await deleteDoc(doc(db, 'stories', id));
+      showToast('Story deleted.');
+      loadFeed();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  /* ─── AUTH MODALS ─── */
+  async function doRegister() {
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const pass = document.getElementById('reg-pass').value;
+    if (!name || !email || !pass) { showToast('Fill in all fields.'); return; }
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, pass);
+      await updateProfile(cred.user, { displayName: name });
+      closeModal();
+      showToast(`Welcome to Azul, ${name}! ✦`);
+    } catch(e) { showToast(e.message); }
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      closeModal();
+      showToast('Signed in ✦');
+    } catch(e) { showToast('Wrong email or password.'); }
+  }
+
+  async function doSignOut() {
+    await signOut(auth);
+    showToast('Signed out.');
+    loadFeed();
+  }
+
+  /* ─── TOAST ─── */
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  /* ─── MODAL ─── */
+  function showModal(type) {
+    const overlay = document.getElementById('modal-overlay');
+    const box = document.getElementById('modal-box');
+    overlay.classList.add('visible');
+
+    if (type === 'register') {
+      box.innerHTML = `
+        <button class="modal-close" onclick="window._closeModal()">✕</button>
+        <h2 class="modal-title">Create account</h2>
+        <input class="modal-input" id="reg-name" type="text" placeholder="Your name"/>
+        <input class="modal-input" id="reg-email" type="email" placeholder="Email"/>
+        <input class="modal-input" id="reg-pass" type="password" placeholder="Password (6+ chars)"/>
+        <button class="btn-primary full" onclick="window._doRegister()">Create account</button>
+        <p class="modal-switch">Already have one? <a onclick="window._showModal('login')">Sign in</a></p>`;
+    } else {
+      box.innerHTML = `
+        <button class="modal-close" onclick="window._closeModal()">✕</button>
+        <h2 class="modal-title">Sign in</h2>
+        <input class="modal-input" id="login-email" type="email" placeholder="Email"/>
+        <input class="modal-input" id="login-pass" type="password" placeholder="Password"/>
+        <button class="btn-primary full" onclick="window._doLogin()">Sign in</button>
+        <p class="modal-switch">No account? <a onclick="window._showModal('register')">Create one</a></p>`;
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('visible');
+  }
+
+  /* ─── EXPOSE TO GLOBAL ─── */
+  window._loadFeed = loadFeed;
+  window._openStory = openStory;
+  window._showWritePage = showWritePage;
+  window._submitStory = submitStory;
+  window._toggleLike = toggleLike;
+  window._postComment = postComment;
+  window._deleteStory = deleteStory;
+  window._doRegister = doRegister;
+  window._doLogin = doLogin;
+  window._signOut = doSignOut;
+  window._showModal = showModal;
+  window._closeModal = closeModal;
+
+  /* ─── INIT ─── */
+  window.addEventListener('DOMContentLoaded', () => {
+    renderNav();
+    loadFeed();
+    document.getElementById('modal-overlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('modal-overlay')) closeModal();
+    });
+  });
+</script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1f1f1f;
+    --border: #2a2a2a;
+    --text: #e8e4dc;
+    --text2: #888;
+    --accent: #c9a96e;
+    --accent2: #e8c88a;
+    --danger: #c96e6e;
+    --radius: 12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ─── NAVBAR ─── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(14,14,14,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--accent);
+    cursor: pointer;
+    letter-spacing: 0.02em;
+  }
+  .nav-logo span { font-style: italic; }
+  .nav-center { display: flex; gap: 8px; }
+  #nav-auth { display: flex; gap: 10px; align-items: center; }
+  .nav-user {
+    font-size: 0.8rem;
+    color: var(--text2);
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ─── BUTTONS ─── */
+  button { cursor: pointer; font-family: 'DM Sans', sans-serif; border: none; outline: none; transition: all .18s; }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0e0e0e;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-primary.large { padding: 12px 32px; font-size: 1rem; border-radius: 8px; }
+  .btn-primary.full { width: 100%; padding: 12px; font-size: 0.95rem; margin-top: 4px; border-radius: 8px; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: #444; }
+
+  .btn-delete {
+    background: transparent;
+    color: var(--danger);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+  }
+  .btn-delete:hover { border-color: var(--danger); }
+
+  .back-btn {
+    background: none;
+    color: var(--text2);
+    font-size: 0.85rem;
+    padding: 0;
+    margin-bottom: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .back-btn:hover { color: var(--accent); }
+
+  /* ─── LAYOUT ─── */
+  #main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* ─── LOADING / EMPTY ─── */
+  .loading, .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text2);
+  }
+  .empty-icon { font-size: 2rem; color: var(--accent); margin-bottom: 16px; }
+  .empty-state p { margin-bottom: 24px; }
+  .spin { display: inline-block; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── FEED ─── */
+  .feed { display: flex; flex-direction: column; gap: 20px; }
+
+  /* ─── CARD ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color .2s, transform .18s, box-shadow .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(201,169,110,0.04) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .card:hover { border-color: #3a3630; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .card:hover::before { opacity: 1; }
+
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .card-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  .author-tag {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: rgba(201,169,110,0.1);
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+  }
+  .author-tag.anon { color: var(--text2); background: rgba(255,255,255,0.05); }
+  .time-tag { font-size: 0.72rem; color: var(--text2); }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .card-preview { font-size: 0.88rem; color: var(--text2); line-height: 1.65; margin-bottom: 16px; }
+
+  .card-footer { display: flex; gap: 12px; }
+
+  .react-btn {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    display: flex; align-items: center; gap: 6px;
+    transition: all .18s;
+  }
+  .react-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .react-btn.liked { color: #e86e6e; border-color: #e86e6e; }
+  .react-btn.big { padding: 8px 20px; font-size: 0.9rem; }
+
+  /* ─── STORY VIEW ─── */
+  .story-view { animation: fadeUp .3s ease; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
+
+  .story-full {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+  }
+  .story-top { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .story-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 28px;
+  }
+  .story-body { font-size: 1rem; line-height: 1.85; color: #c8c4bc; }
+  .story-actions { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+  /* ─── COMMENTS ─── */
+  .comments-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+  }
+  .comments-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--accent);
+  }
+  #comments-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+
+  .comment {
+    padding: 14px 16px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border-left: 2px solid var(--border);
+  }
+  .comment-author { font-size: 0.8rem; font-weight: 500; color: var(--accent); margin-right: 8px; }
+  .comment-time { font-size: 0.72rem; color: var(--text2); }
+  .comment p { margin-top: 6px; font-size: 0.9rem; color: #bbb; }
+  .no-comments { color: var(--text2); font-size: 0.88rem; font-style: italic; }
+
+  .comment-form { display: flex; flex-direction: column; gap: 12px; }
+  .comment-controls { display: flex; align-items: center; justify-content: space-between; }
+
+  /* ─── WRITE VIEW ─── */
+  .write-view { animation: fadeUp .3s ease; }
+  .write-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 28px;
+    color: var(--text);
+  }
+  .write-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+
+  /* ─── INPUTS ─── */
+  input[type=text], input[type=email], input[type=password],
+  textarea, .story-input, .story-textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    padding: 12px 16px;
+    width: 100%;
+    outline: none;
+    transition: border-color .2s;
+    resize: vertical;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  ::placeholder { color: #555; }
+
+  .story-input { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 16px; }
+  .story-textarea { line-height: 1.8; min-height: 260px; }
+
+  .anon-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text2);
+    cursor: pointer;
+  }
+  .anon-label input { width: auto; cursor: pointer; accent-color: var(--accent); }
+
+  /* ─── MODAL ─── */
+  #modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+  }
+  #modal-overlay.visible { display: flex; }
+
+  #modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 380px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    animation: fadeUp .25s ease;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+  }
+  .modal-input { margin: 0; }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; color: var(--text2); font-size: 1rem;
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .modal-close:hover { color: var(--text); border-color: #555; }
+  .modal-switch { font-size: 0.82rem; color: var(--text2); text-align: center; }
+  .modal-switch a { color: var(--accent); cursor: pointer; text-decoration: underline; }
+
+  /* ─── TOAST ─── */
+  #toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: all .3s;
+    pointer-events: none;
+    z-index: 300;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 600px) {
+    nav { padding: 0 16px; }
+    #main { padding: 24px 14px 60px; }
+    .story-full { padding: 24px 20px; }
+    .story-title { font-size: 1.5rem; }
+    .write-view .write-footer { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-logo" onclick="window._loadFeed()">Az<span>ul</span></div>
+  <div class="nav-center">
+    <button class="btn-primary" onclick="window._showWritePage()">+ Write</button>
+  </div>
+  <div id="nav-auth"></div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div id="main"></div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal-box"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+</body>
+</html>
