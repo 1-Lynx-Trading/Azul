@@ -33,7 +33,6 @@
     line-height: 1.6;
   }
 
-  /* ── NAV ── */
   nav {
     position: sticky; top: 0; z-index: 100;
     background: rgba(14,14,14,0.97);
@@ -92,7 +91,6 @@
     white-space: nowrap;
   }
 
-  /* ── TABS ── */
   .feed-tabs {
     display: flex;
     gap: 0;
@@ -114,7 +112,6 @@
   .tab-btn:hover { color: var(--text); }
   .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-  /* ── GENRE FILTER ── */
   .genre-bar {
     display: flex;
     gap: 8px;
@@ -134,7 +131,6 @@
   .genre-chip:hover { color: var(--text); border-color: #444; }
   .genre-chip.active { background: rgba(201,169,110,0.15); border-color: var(--accent); color: var(--accent); }
 
-  /* ── BUTTONS ── */
   button { cursor: pointer; font-family: 'DM Sans', sans-serif; border: none; outline: none; transition: all .18s; }
 
   .btn-primary {
@@ -171,6 +167,16 @@
   }
   .btn-delete:hover { border-color: var(--danger); }
 
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .btn-danger:hover { background: #d98080; transform: translateY(-1px); }
+
   .back-btn {
     background: none;
     color: var(--text2);
@@ -183,7 +189,6 @@
   }
   .back-btn:hover { color: var(--accent); }
 
-  /* ── LAYOUT ── */
   #main {
     max-width: 720px;
     margin: 0 auto;
@@ -200,7 +205,6 @@
   .spin { display: inline-block; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── FEED ── */
   .feed { display: flex; flex-direction: column; gap: 20px; }
 
   .card {
@@ -264,7 +268,6 @@
   .react-btn.saved { color: var(--accent); border-color: var(--accent); }
   .react-btn.big { padding: 8px 20px; font-size: 0.9rem; }
 
-  /* ── STORY VIEW ── */
   .story-view { animation: fadeUp .3s ease; }
   @keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
 
@@ -292,7 +295,6 @@
   .story-body em { font-style: italic; }
   .story-actions { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 
-  /* ── SERIES BADGE ── */
   .series-badge {
     display: inline-flex;
     align-items: center;
@@ -306,7 +308,6 @@
     margin-bottom: 16px;
   }
 
-  /* ── COMMENTS ── */
   .comments-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -334,7 +335,6 @@
   .comment-form { display: flex; flex-direction: column; gap: 12px; }
   .comment-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 
-  /* ── WRITE VIEW ── */
   .write-view { animation: fadeUp .3s ease; }
   .write-heading {
     font-family: 'Playfair Display', serif;
@@ -344,7 +344,6 @@
   .write-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
   .write-options { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 
-  /* ── RICH TEXT TOOLBAR ── */
   .editor-toolbar {
     display: flex;
     gap: 4px;
@@ -394,7 +393,6 @@
   .story-body-editor h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--text); }
   .story-body-editor img { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
 
-  /* ── INPUTS ── */
   input[type=text], input[type=email], input[type=password], input[type=url], textarea, select {
     background: var(--surface2);
     border: 1px solid var(--border);
@@ -444,7 +442,6 @@
   }
   .anon-label input[type=checkbox] { width: auto; cursor: pointer; accent-color: var(--accent); }
 
-  /* ── READING LIST VIEW ── */
   .reading-list-view { animation: fadeUp .3s ease; }
   .reading-list-heading {
     font-family: 'Playfair Display', serif;
@@ -452,7 +449,6 @@
     margin-bottom: 28px;
   }
 
-  /* ── PROFILE VIEW ── */
   .profile-view { animation: fadeUp .3s ease; }
   .profile-header {
     background: var(--surface);
@@ -479,7 +475,6 @@
   .profile-stat-num { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
   .profile-stat-label { font-size: 0.75rem; color: var(--text2); }
 
-  /* ── ANALYTICS ── */
   .analytics-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -504,7 +499,6 @@
   .analytics-num { font-size: 1.8rem; font-weight: 700; color: var(--accent); font-family: 'Playfair Display', serif; }
   .analytics-label { font-size: 0.75rem; color: var(--text2); margin-top: 4px; }
 
-  /* ── FOLLOWING / AUTHOR PAGE ── */
   .follow-btn {
     background: transparent;
     border: 1px solid var(--accent);
@@ -519,7 +513,6 @@
   .follow-btn:hover, .follow-btn.following { background: rgba(201,169,110,0.15); }
   .follow-btn.following { color: var(--accent2); border-color: var(--accent2); }
 
-  /* ── SEARCH RESULTS ── */
   .search-view { animation: fadeUp .3s ease; }
   .search-heading {
     font-family: 'Playfair Display', serif;
@@ -529,7 +522,7 @@
   }
   .search-heading span { color: var(--text); }
 
-  /* ── MODAL ── */
+  /* ── UNIFIED MODAL ── */
   #modal-overlay {
     display: none;
     position: fixed; inset: 0; z-index: 200;
@@ -575,6 +568,35 @@
   .modal-switch { font-size: 0.82rem; color: var(--text2); text-align: center; margin-top: 4px; }
   .modal-switch a { color: var(--accent); cursor: pointer; text-decoration: underline; }
 
+  /* Delete confirm modal styles */
+  .delete-modal-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(201,110,110,0.12);
+    border: 1px solid rgba(201,110,110,0.3);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 8px;
+    color: var(--danger);
+  }
+  .delete-modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    text-align: center;
+    color: var(--text);
+  }
+  .delete-modal-body {
+    font-size: 0.88rem;
+    color: var(--text2);
+    text-align: center;
+    line-height: 1.6;
+  }
+  .delete-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .delete-modal-actions > * { flex: 1; }
+
   .error-msg {
     background: rgba(201,110,110,0.15);
     border: 1px solid rgba(201,110,110,0.4);
@@ -586,7 +608,6 @@
   }
   .error-msg.show { display: block; }
 
-  /* ── TOAST ── */
   #toast {
     position: fixed; bottom: 30px; left: 50%;
     transform: translateX(-50%) translateY(20px);
@@ -609,7 +630,6 @@
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
-  /* ── PROMPTS BANNER ── */
   .prompt-banner {
     background: linear-gradient(135deg, rgba(201,169,110,0.08), rgba(201,169,110,0.03));
     border: 1px solid rgba(201,169,110,0.2);
@@ -625,7 +645,6 @@
   .prompt-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 4px; }
   .prompt-text { font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; color: var(--text); }
 
-  /* ── SERIES SELECT ── */
   .series-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -634,7 +653,6 @@
     margin-bottom: 24px;
   }
 
-  /* ── SVG ICONS ── */
   .icon { width: 14px; height: 14px; display: inline-block; vertical-align: middle; }
   .icon-sm { width: 12px; height: 12px; }
   .icon-lg { width: 16px; height: 16px; }
@@ -653,7 +671,6 @@
 </head>
 <body>
 
-<!-- SVG ICON DEFS (inline, reusable) -->
 <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
   <symbol id="ic-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -729,6 +746,9 @@
   </symbol>
   <symbol id="ic-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="ic-alert-triangle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
   </symbol>
 </svg>
 
@@ -843,18 +863,15 @@ const App = (() => {
     if (genre !== undefined) activeGenre = genre;
     stopUnsub();
     main().innerHTML = `<div class="loading"><span class="spin">◌</span> Loading stories…</div>`;
-    // Simple single-field orderBy — no composite index needed.
-    // Visibility and genre filtering done client-side to avoid index requirements.
+    // Use simple orderBy with no compound filters to avoid index requirements
     const q = db.collection('stories').orderBy('createdAt','desc');
     unsub = q.onSnapshot(snap => {
       let docs = snap.docs.filter(d => {
         const v = d.data().visibility;
-        // show public, unlisted, or legacy docs with no visibility field
         if (v === 'private') return false;
         if (activeGenre && d.data().genre !== activeGenre) return false;
         return true;
       });
-      // Sort client-side for 'popular' tab
       if (activeTab === 'popular') {
         docs = docs.slice().sort((a,b) => ((b.data().likes||[]).length) - ((a.data().likes||[]).length));
       }
@@ -911,7 +928,7 @@ const App = (() => {
           <span class="time-tag">${ago(d.createdAt)}</span>
           ${genreTag}${seriesTag}
         </div>
-        ${isOwner?`<button class="btn-delete" onclick="event.stopPropagation();App.deleteStory('${id}')">${icon('trash','icon-sm')}</button>`:''}
+        ${isOwner?`<button class="btn-delete" onclick="event.stopPropagation();App.deleteStory('${id}','${esc(d.title)}')">${icon('trash','icon-sm')}</button>`:''}
       </div>
       <h2 class="card-title">${esc(d.title)}</h2>
       <p class="card-preview">${preview}</p>
@@ -938,9 +955,7 @@ const App = (() => {
     stopUnsub();
     main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
     try {
-      // increment view count
       db.collection('stories').doc(id).update({ views: firebase.firestore.FieldValue.increment(1) }).catch(()=>{});
-
       const snap = await db.collection('stories').doc(id).get();
       if (!snap.exists) { main().innerHTML=`<p>Story not found.</p>`; return; }
       const d = snap.data();
@@ -970,7 +985,7 @@ const App = (() => {
               <span class="time-tag">${ago(d.createdAt)}</span>
               ${genreDisp}
               ${d.views?`<span class="time-tag">${icon('eye','icon-sm')} ${d.views} views</span>`:''}
-              ${isOwner?`<button class="btn-delete" onclick="App.deleteStory('${id}')">${icon('trash','icon-sm')} Delete</button>`:''}
+              ${isOwner?`<button class="btn-delete" onclick="App.deleteStory('${id}','${esc(d.title)}')">${icon('trash','icon-sm')} Delete</button>`:''}
             </div>
             <h1 class="story-title">${esc(d.title)}</h1>
             <div class="story-body">${bodyHTML}</div>
@@ -999,7 +1014,6 @@ const App = (() => {
           </div>
         </div>`;
 
-      // Check follow state
       if (user && d.authorId && !d.anonymous) {
         checkFollowState(d.authorId);
       }
@@ -1009,9 +1023,7 @@ const App = (() => {
   }
 
   function renderStoryBody(text) {
-    // Render plain text with line breaks, or pass through if it contains HTML tags (from rich editor)
     if (text.includes('<') && text.includes('>')) {
-      // Already HTML from rich editor — sanitize and return
       return text
         .replace(/<script[\s\S]*?<\/script>/gi,'')
         .replace(/on\w+="[^"]*"/gi,'');
@@ -1118,7 +1130,6 @@ const App = (() => {
   function goWrite(promptText) {
     page = 'write';
     stopUnsub();
-    const seriesOpts = '<option value="">No series</option>';
     main().innerHTML = `
       <div class="write-view">
         <button class="back-btn" onclick="App.goFeed()">${icon('arrow-left')} Back</button>
@@ -1266,32 +1277,62 @@ const App = (() => {
     }
   }
 
-  // ── DELETE ──
-  async function deleteStory(id) {
-    if (!confirm('Delete this story forever?')) return;
+  // ── DELETE — custom modal, no browser confirm() ──
+  function deleteStory(id, title) {
+    const overlay = document.getElementById('modal-overlay');
+    const box = document.getElementById('modal-box');
+    overlay.classList.add('visible');
+    box.innerHTML = `
+      <div class="delete-modal-icon">
+        <svg width="24" height="24" aria-hidden="true"><use href="#ic-alert-triangle"/></svg>
+      </div>
+      <div class="delete-modal-title">Delete story?</div>
+      <div class="delete-modal-body">
+        <strong style="color:var(--text)">"${esc(title||'This story')}"</strong> will be permanently removed. This cannot be undone.
+      </div>
+      <div class="delete-modal-actions">
+        <button class="btn-ghost" onclick="App.closeModal()">Cancel</button>
+        <button class="btn-danger" id="confirm-delete-btn" onclick="App.confirmDelete('${id}')">
+          ${icon('trash','icon')} Delete forever
+        </button>
+      </div>`;
+  }
+
+  async function confirmDelete(id) {
+    const btn = document.getElementById('confirm-delete-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
     try {
       await db.collection('stories').doc(id).delete();
+      closeModal();
       toast('Story deleted.');
       goFeed();
-    } catch(e) { toast('Error: '+e.message); }
+    } catch(e) {
+      closeModal();
+      toast('Error: '+e.message);
+    }
   }
 
   // ── SEARCH ──
+  // FIX: fetch all stories without compound where+orderBy to avoid composite index requirement,
+  // then filter client-side (same pattern as feed).
   function doSearch(query) {
     query = (query||'').trim();
     if (!query) { goFeed(); return; }
     page = 'search';
     stopUnsub();
-    main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
-    const q = db.collection('stories').where('visibility','in',['public',null]).orderBy('createdAt','desc').limit(200);
-    q.get().then(snap => {
+    main().innerHTML = `<div class="loading"><span class="spin">◌</span> Searching…</div>`;
+    // Use simple orderBy only — no compound where clause
+    db.collection('stories').orderBy('createdAt','desc').get().then(snap => {
       const ql = query.toLowerCase();
       const results = snap.docs.filter(d => {
         const data = d.data();
+        // client-side filter: exclude private stories
+        if (data.visibility === 'private') return false;
         return (data.title||'').toLowerCase().includes(ql)
           || (data.authorName||'').toLowerCase().includes(ql)
           || (data.genre||'').toLowerCase().includes(ql)
-          || (data.series||'').toLowerCase().includes(ql);
+          || (data.series||'').toLowerCase().includes(ql)
+          || (data.body||'').replace(/<[^>]*>/g,' ').toLowerCase().includes(ql);
       });
       main().innerHTML = `
         <div class="search-view">
@@ -1307,14 +1348,22 @@ const App = (() => {
   }
 
   // ── AUTHOR PAGE ──
+  // FIX: removed orderBy from where query to avoid composite index requirement;
+  // sort client-side instead.
   async function viewAuthor(authorId, authorName) {
     if (!authorId || authorId==='null') return;
     page = 'author';
     stopUnsub();
     main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
     try {
-      const snap = await db.collection('stories').where('authorId','==',authorId).orderBy('createdAt','desc').get();
-      const stories = snap.docs;
+      // Query by authorId only — no orderBy (avoids composite index)
+      const snap = await db.collection('stories').where('authorId','==',authorId).get();
+      // Sort client-side by createdAt descending
+      const stories = snap.docs.sort((a,b) => {
+        const ta = a.data().createdAt ? (a.data().createdAt.toDate ? a.data().createdAt.toDate().getTime() : new Date(a.data().createdAt).getTime()) : 0;
+        const tb = b.data().createdAt ? (b.data().createdAt.toDate ? b.data().createdAt.toDate().getTime() : new Date(b.data().createdAt).getTime()) : 0;
+        return tb - ta;
+      });
       const totalLikes = stories.reduce((sum,d)=>sum+((d.data().likes||[]).length),0);
       const totalViews = stories.reduce((sum,d)=>sum+(d.data().views||0),0);
       let isFollowing = false;
@@ -1349,14 +1398,21 @@ const App = (() => {
   }
 
   // ── MY PROFILE ──
+  // FIX: same as viewAuthor — query by authorId only, sort client-side.
   async function goProfile() {
     if (!user) { openModal('login'); return; }
     page = 'profile';
     stopUnsub();
     main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
     try {
-      const snap = await db.collection('stories').where('authorId','==',user.uid).orderBy('createdAt','desc').get();
-      const stories = snap.docs;
+      // Query by authorId without orderBy — avoids composite index
+      const snap = await db.collection('stories').where('authorId','==',user.uid).get();
+      // Sort client-side
+      const stories = snap.docs.sort((a,b) => {
+        const ta = a.data().createdAt ? (a.data().createdAt.toDate ? a.data().createdAt.toDate().getTime() : new Date(a.data().createdAt).getTime()) : 0;
+        const tb = b.data().createdAt ? (b.data().createdAt.toDate ? b.data().createdAt.toDate().getTime() : new Date(b.data().createdAt).getTime()) : 0;
+        return tb - ta;
+      });
       const totalLikes = stories.reduce((sum,d)=>sum+((d.data().likes||[]).length),0);
       const totalViews = stories.reduce((sum,d)=>sum+(d.data().views||0),0);
       const totalComments = stories.reduce((sum,d)=>sum+((d.data().comments||[]).length),0);
@@ -1501,14 +1557,13 @@ const App = (() => {
   window.addEventListener('DOMContentLoaded', () => {
     renderNav();
     goFeed();
-    // Hook up nav search on input enter
     const si = document.getElementById('nav-search-input');
     if(si) si.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch(si.value); });
   });
 
   return {
     goFeed, goWrite, writeWithPrompt, openStory, submitStory,
-    toggleLike, postComment, deleteStory,
+    toggleLike, postComment, deleteStory, confirmDelete,
     toggleSave, toggleSaveStory, goReadingList,
     openModal, closeModal, modalClickOutside,
     doRegister, doLogin, signOut,
