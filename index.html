@@ -1,475 +1,503 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Azul — Share Your Story</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css"/>
+
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
-:root {
-  --bg:#0e0e0e; --surface:#161616; --surface2:#1e1e1e; --surface3:#252525;
-  --border:#2a2a2a; --border2:#333;
-  --text:#e8e4dc; --text2:#888; --text3:#555;
-  --accent:#c9a96e; --accent2:#e8c88a; --accent-dim:rgba(201,169,110,0.12);
-  --danger:#c96e6e; --green:#6ec98a; --blue:#6ea8c9; --purple:#a96ec9;
-  --radius:12px;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;line-height:1.6}
-a{color:inherit;text-decoration:none}
-button{cursor:pointer;font-family:'DM Sans',sans-serif;border:none;outline:none;transition:all .18s}
-input,textarea,select{font-family:'DM Sans',sans-serif}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 
-/* ── NAV ── */
-nav{position:sticky;top:0;z-index:100;background:rgba(14,14,14,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:60px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.nav-logo{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--accent);cursor:pointer;user-select:none;white-space:nowrap}
-.nav-logo span{font-style:italic}
-.nav-mid{display:flex;align-items:center;gap:8px;flex:1;max-width:360px;margin:0 16px}
-.nav-search{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:7px 14px;font-size:0.83rem;width:100%;outline:none;transition:border-color .2s}
-.nav-search:focus{border-color:var(--accent)}
-.nav-search::placeholder{color:var(--text3)}
-#nav-auth{display:flex;gap:8px;align-items:center;white-space:nowrap}
-.nav-user{font-size:0.78rem;color:var(--text2);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;transition:color .2s}
-.nav-user:hover{color:var(--accent)}
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1f1f1f;
+    --border: #2a2a2a;
+    --text: #e8e4dc;
+    --text2: #888;
+    --accent: #c9a96e;
+    --accent2: #e8c88a;
+    --danger: #c96e6e;
+    --radius: 12px;
+  }
 
-/* ── BUTTONS ── */
-.btn-primary{background:var(--accent);color:#0e0e0e;padding:8px 18px;border-radius:6px;font-size:0.83rem;font-weight:500}
-.btn-primary:hover:not(:disabled){background:var(--accent2);transform:translateY(-1px)}
-.btn-primary:disabled{opacity:.55;cursor:not-allowed}
-.btn-primary.large{padding:11px 28px;font-size:.95rem;border-radius:8px}
-.btn-primary.full{width:100%;padding:13px;font-size:.93rem;border-radius:8px;margin-top:2px}
-.btn-ghost{background:transparent;color:var(--text2);padding:7px 13px;border-radius:6px;font-size:0.83rem;border:1px solid var(--border)}
-.btn-ghost:hover{color:var(--text);border-color:#444}
-.btn-ghost.active{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
-.btn-sm{padding:5px 12px;font-size:.78rem;border-radius:5px}
-.btn-danger{background:transparent;color:var(--danger);border:1px solid transparent;padding:5px 10px;border-radius:5px;font-size:.78rem}
-.btn-danger:hover{border-color:var(--danger)}
-.back-btn{background:none;color:var(--text2);font-size:.85rem;padding:0;margin-bottom:24px;display:inline-flex;align-items:center;gap:6px}
-.back-btn:hover{color:var(--accent)}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── LAYOUT ── */
-#main{max-width:760px;margin:0 auto;padding:36px 20px 80px}
-.page{animation:fadeUp .28s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.two-col{display:grid;grid-template-columns:1fr 260px;gap:24px;align-items:start}
-@media(max-width:700px){.two-col{grid-template-columns:1fr}}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
 
-/* ── LOADING / EMPTY ── */
-.loading,.empty-state{text-align:center;padding:70px 20px;color:var(--text2)}
-.empty-icon{font-size:2rem;color:var(--accent);margin-bottom:14px}
-.empty-state p{margin-bottom:20px}
-.spin{display:inline-block;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(14,14,14,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--accent);
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    user-select: none;
+  }
+  .nav-logo span { font-style: italic; }
+  .nav-center { display: flex; gap: 8px; }
+  #nav-auth { display: flex; gap: 10px; align-items: center; }
+  .nav-user {
+    font-size: 0.8rem;
+    color: var(--text2);
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-/* ── FILTER BAR ── */
-.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;align-items:center}
-.filter-bar .label{font-size:.75rem;color:var(--text3);margin-right:2px}
-.tag-pill{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:4px 12px;border-radius:20px;font-size:.76rem;cursor:pointer;transition:all .15s}
-.tag-pill:hover,.tag-pill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
-.sort-select{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:6px;font-size:.78rem;outline:none;cursor:pointer;margin-left:auto}
+  button { cursor: pointer; font-family: 'DM Sans', sans-serif; border: none; outline: none; transition: all .18s; }
 
-/* ── FEED ── */
-.feed{display:flex;flex-direction:column;gap:18px}
+  .btn-primary {
+    background: var(--accent);
+    color: #0e0e0e;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--accent2); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-primary.large { padding: 12px 32px; font-size: 1rem; border-radius: 8px; }
+  .btn-primary.full { width: 100%; padding: 13px; font-size: 0.95rem; border-radius: 8px; margin-top: 2px; }
 
-/* ── CARD ── */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;cursor:pointer;transition:border-color .2s,transform .18s,box-shadow .2s;position:relative}
-.card:hover{border-color:#3a3630;transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.4)}
-.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px}
-.card-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.card-actions{display:flex;gap:6px;flex-shrink:0}
-.author-tag{font-size:.72rem;font-weight:500;color:var(--accent);background:var(--accent-dim);padding:3px 9px;border-radius:20px}
-.author-tag.anon{color:var(--text2);background:rgba(255,255,255,.05)}
-.time-tag{font-size:.7rem;color:var(--text3)}
-.privacy-badge{font-size:.65rem;padding:2px 7px;border-radius:10px;border:1px solid}
-.privacy-badge.public{color:var(--green);border-color:rgba(110,201,138,.3)}
-.privacy-badge.unlisted{color:var(--blue);border-color:rgba(110,168,201,.3)}
-.privacy-badge.private{color:var(--text3);border-color:var(--border)}
-.card-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;line-height:1.3;margin-bottom:8px}
-.card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.genre-tag{font-size:.68rem;color:var(--purple);background:rgba(169,110,201,.1);border:1px solid rgba(169,110,201,.2);padding:2px 8px;border-radius:10px}
-.card-preview{font-size:.86rem;color:var(--text2);line-height:1.65;margin-bottom:14px}
-.card-footer{display:flex;gap:10px;align-items:center}
-.react-btn{background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:4px 13px;font-size:.8rem;display:flex;align-items:center;gap:5px;transition:all .18s}
-.react-btn:hover{color:var(--accent);border-color:var(--accent)}
-.react-btn.liked{color:#e86e6e;border-color:#e86e6e}
-.react-btn.saved{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
-.read-time{font-size:.7rem;color:var(--text3);margin-left:auto}
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: #444; }
 
-/* ── SIDEBAR ── */
-.sidebar{display:flex;flex-direction:column;gap:16px}
-.sidebar-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
-.sidebar-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--accent);margin-bottom:12px}
-.badge-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.badge-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 8px;text-align:center;font-size:.7rem;color:var(--text2);transition:all .2s}
-.badge-item.earned{border-color:rgba(201,169,110,.4);background:var(--accent-dim);color:var(--accent)}
-.badge-icon{font-size:1.4rem;display:block;margin-bottom:4px}
-.leaderboard-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
-.leaderboard-item:last-child{border-bottom:none}
-.lb-rank{font-size:.75rem;color:var(--text3);width:18px;text-align:center}
-.lb-name{font-size:.82rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
-.lb-name:hover{color:var(--accent)}
-.lb-count{font-size:.72rem;color:var(--accent)}
+  .btn-delete {
+    background: transparent;
+    color: var(--danger);
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+  }
+  .btn-delete:hover { border-color: var(--danger); }
 
-/* ── STORY VIEW ── */
-.story-full{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:36px;margin-bottom:24px}
-.story-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
-.story-h1{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;line-height:1.25;margin-bottom:20px}
-.story-body-html{font-size:.98rem;line-height:1.9;color:#c8c4bc}
-.story-body-html h1,.story-body-html h2,.story-body-html h3{font-family:'Playfair Display',serif;color:var(--text);margin:20px 0 10px}
-.story-body-html p{margin-bottom:12px}
-.story-body-html blockquote{border-left:3px solid var(--accent);padding-left:16px;color:var(--text2);font-style:italic;margin:14px 0}
-.story-body-html strong{color:var(--text);font-weight:500}
-.story-body-html img{max-width:100%;border-radius:8px;margin:10px 0}
-.story-actions{margin-top:24px;padding-top:18px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.follow-btn{background:var(--surface2);color:var(--text2);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:.8rem;transition:all .2s}
-.follow-btn:hover,.follow-btn.following{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+  .back-btn {
+    background: none;
+    color: var(--text2);
+    font-size: 0.85rem;
+    padding: 0;
+    margin-bottom: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .back-btn:hover { color: var(--accent); }
 
-/* ── COMMENTS ── */
-.comments-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
-.comments-heading{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--accent);margin-bottom:18px}
-#comments-list{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
-.comment{padding:12px 14px;background:var(--surface2);border-radius:8px;border-left:2px solid var(--border)}
-.comment-author{font-size:.78rem;font-weight:500;color:var(--accent);margin-right:7px}
-.comment-time{font-size:.7rem;color:var(--text3)}
-.comment p{margin-top:5px;font-size:.88rem;color:#bbb}
-.no-comments{color:var(--text2);font-size:.86rem;font-style:italic}
-.comment-form{display:flex;flex-direction:column;gap:10px}
-.comment-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  #main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
 
-/* ── WRITE VIEW ── */
-.write-heading{font-family:'Playfair Display',serif;font-size:1.7rem;margin-bottom:24px}
-.write-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-@media(max-width:500px){.write-meta{grid-template-columns:1fr}}
-.write-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px}
-.field-label{font-size:.75rem;color:var(--text3);margin-bottom:5px;display:block}
+  .loading, .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text2);
+  }
+  .empty-icon { font-size: 2rem; color: var(--accent); margin-bottom: 16px; }
+  .empty-state p { margin-bottom: 24px; }
+  .spin { display: inline-block; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── QUILL EDITOR ── */
-.quill-wrap{margin-bottom:14px}
-.ql-toolbar{background:var(--surface2)!important;border:1px solid var(--border)!important;border-bottom:none!important;border-radius:8px 8px 0 0!important}
-.ql-container{background:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:0 0 8px 8px!important;min-height:240px}
-.ql-editor{color:var(--text)!important;font-family:'DM Sans',sans-serif!important;font-size:.95rem!important;line-height:1.8!important;min-height:240px}
-.ql-editor.ql-blank::before{color:var(--text3)!important;font-style:normal!important}
-.ql-toolbar .ql-stroke{stroke:#888!important}
-.ql-toolbar .ql-fill{fill:#888!important}
-.ql-toolbar .ql-picker{color:#888!important}
-.ql-toolbar button:hover .ql-stroke,.ql-toolbar .ql-active .ql-stroke{stroke:var(--accent)!important}
-.ql-toolbar button:hover .ql-fill,.ql-toolbar .ql-active .ql-fill{fill:var(--accent)!important}
-.ql-toolbar .ql-picker-options{background:var(--surface3)!important;border-color:var(--border)!important}
+  .feed { display: flex; flex-direction: column; gap: 20px; }
 
-/* ── TAGS INPUT ── */
-.tags-input-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:42px;cursor:text;transition:border-color .2s}
-.tags-input-wrap:focus-within{border-color:var(--accent)}
-.tags-input-wrap .genre-tag{cursor:pointer;display:flex;align-items:center;gap:4px}
-.tags-input-wrap .genre-tag .rm{font-size:.7rem;opacity:.7}
-.tags-input-wrap input{background:none;border:none;outline:none;color:var(--text);font-size:.85rem;min-width:80px;flex:1}
-.tags-input-wrap input::placeholder{color:var(--text3)}
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    cursor: pointer;
+    transition: border-color .2s, transform .18s, box-shadow .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover { border-color: #3a3630; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
 
-/* ── PROFILE VIEW ── */
-.profile-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:20px;display:flex;gap:20px;align-items:flex-start}
-.profile-avatar{width:64px;height:64px;border-radius:50%;background:var(--accent-dim);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--accent);flex-shrink:0}
-.profile-name{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:4px}
-.profile-stats{display:flex;gap:18px;margin-top:10px;flex-wrap:wrap}
-.profile-stat{text-align:center}
-.profile-stat .num{font-size:1.1rem;font-weight:500;color:var(--text)}
-.profile-stat .lbl{font-size:.7rem;color:var(--text3)}
-.badges-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.badge-mini{font-size:1.2rem;title:attr(title)}
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .card-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-/* ── READING LIST VIEW ── */
-.reading-list-empty{text-align:center;padding:40px;color:var(--text2);font-size:.88rem}
+  .author-tag {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: rgba(201,169,110,0.1);
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+  }
+  .author-tag.anon { color: var(--text2); background: rgba(255,255,255,0.05); }
+  .time-tag { font-size: 0.72rem; color: var(--text2); }
 
-/* ── INPUTS ── */
-.field{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 14px;width:100%;outline:none;font-size:.9rem;transition:border-color .2s;resize:vertical}
-.field:focus{border-color:var(--accent)}
-.field::placeholder{color:var(--text3)}
-select.field{cursor:pointer}
-.anon-label{display:flex;align-items:center;gap:7px;font-size:.8rem;color:var(--text2);cursor:pointer;user-select:none}
-.anon-label input[type=checkbox]{width:auto;cursor:pointer;accent-color:var(--accent)}
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 10px;
+  }
+  .card-preview { font-size: 0.88rem; color: var(--text2); line-height: 1.65; margin-bottom: 16px; }
+  .card-footer { display: flex; gap: 12px; }
 
-/* ── MODAL ── */
-#modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}
-#modal-overlay.visible{display:flex}
-#modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px 28px;width:100%;max-width:400px;position:relative;display:flex;flex-direction:column;gap:11px;animation:fadeUp .22s ease;box-shadow:0 20px 60px rgba(0,0,0,.6)}
-.modal-title{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:4px}
-.modal-close{position:absolute;top:14px;right:14px;background:none;color:var(--text2);font-size:.95rem;width:28px;height:28px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;padding:0}
-.modal-close:hover{color:var(--text);border-color:#555}
-.modal-switch{font-size:.8rem;color:var(--text2);text-align:center;margin-top:4px}
-.modal-switch a{color:var(--accent);cursor:pointer;text-decoration:underline}
-.error-msg{background:rgba(201,110,110,.13);border:1px solid rgba(201,110,110,.35);color:#e89090;padding:9px 13px;border-radius:7px;font-size:.8rem;display:none}
-.error-msg.show{display:block}
+  .react-btn {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    display: flex; align-items: center; gap: 6px;
+    transition: all .18s;
+  }
+  .react-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .react-btn.liked { color: #e86e6e; border-color: #e86e6e; }
+  .react-btn.big { padding: 8px 20px; font-size: 0.9rem; }
 
-/* ── TOAST ── */
-#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:#1e1e1e;border:1px solid #333;color:var(--text);padding:11px 22px;border-radius:8px;font-size:.83rem;opacity:0;transition:all .28s;pointer-events:none;z-index:400;box-shadow:0 8px 28px rgba(0,0,0,.5);white-space:nowrap}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .story-view { animation: fadeUp .3s ease; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
 
-/* ── TABS ── */
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:22px}
-.tab{background:none;color:var(--text2);padding:8px 16px;font-size:.84rem;border-bottom:2px solid transparent;border-radius:0;margin-bottom:-1px}
-.tab:hover{color:var(--text)}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .story-full {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 32px;
+  }
+  .story-top { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+  .story-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 28px;
+  }
+  .story-body { font-size: 1rem; line-height: 1.85; color: #c8c4bc; }
+  .story-actions { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
 
-/* ── MISC ── */
-.divider{height:1px;background:var(--border);margin:8px 0}
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:#2e2e2e;border-radius:3px}
-@media(max-width:600px){nav{padding:0 14px}.nav-mid{display:none}#main{padding:22px 14px 60px}.story-full{padding:22px 16px}.write-meta{grid-template-columns:1fr}.profile-header{flex-direction:column}}
+  .comments-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+  }
+  .comments-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--accent);
+  }
+  #comments-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
+  .comment {
+    padding: 14px 16px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border-left: 2px solid var(--border);
+  }
+  .comment-author { font-size: 0.8rem; font-weight: 500; color: var(--accent); margin-right: 8px; }
+  .comment-time { font-size: 0.72rem; color: var(--text2); }
+  .comment p { margin-top: 6px; font-size: 0.9rem; color: #bbb; }
+  .no-comments { color: var(--text2); font-size: 0.88rem; font-style: italic; }
+  .comment-form { display: flex; flex-direction: column; gap: 12px; }
+  .comment-controls { display: flex; align-items: center; justify-content: space-between; }
+
+  .write-view { animation: fadeUp .3s ease; }
+  .write-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 28px;
+  }
+  .write-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+
+  input[type=text], input[type=email], input[type=password], textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    padding: 12px 16px;
+    width: 100%;
+    outline: none;
+    transition: border-color .2s;
+    resize: vertical;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  ::placeholder { color: #555; }
+
+  .story-title-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    border-radius: 8px;
+    padding: 12px 16px;
+    width: 100%;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color .2s;
+  }
+  .story-title-input:focus { border-color: var(--accent); }
+
+  .story-body-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    padding: 12px 16px;
+    width: 100%;
+    outline: none;
+    line-height: 1.8;
+    min-height: 260px;
+    resize: vertical;
+    transition: border-color .2s;
+  }
+  .story-body-input:focus { border-color: var(--accent); }
+
+  .anon-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text2);
+    cursor: pointer;
+    user-select: none;
+  }
+  .anon-label input[type=checkbox] { width: auto; cursor: pointer; accent-color: var(--accent); }
+
+  /* MODAL */
+  #modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  #modal-overlay.visible { display: flex; }
+
+  #modal-box {
+    background: var(--surface);
+    border: 1px solid #333;
+    border-radius: 16px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: fadeUp .25s ease;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; color: var(--text2); font-size: 1rem;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    padding: 0; line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); border-color: #555; }
+  .modal-switch { font-size: 0.82rem; color: var(--text2); text-align: center; margin-top: 4px; }
+  .modal-switch a { color: var(--accent); cursor: pointer; text-decoration: underline; }
+
+  .error-msg {
+    background: rgba(201, 110, 110, 0.15);
+    border: 1px solid rgba(201,110,110,0.4);
+    color: #e89090;
+    padding: 10px 14px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1e1e1e;
+    border: 1px solid #333;
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: all .3s;
+    pointer-events: none;
+    z-index: 400;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 16px; }
+    #main { padding: 24px 14px 60px; }
+    .story-full { padding: 24px 16px; }
+    .story-title { font-size: 1.4rem; }
+    #modal-box { padding: 28px 20px; }
+  }
 </style>
 </head>
 <body>
 
 <nav>
   <div class="nav-logo" onclick="App.goFeed()">Az<span>ul</span></div>
-  <div class="nav-mid">
-    <input class="nav-search" id="nav-search" placeholder="Search stories…" oninput="App.onSearch(this.value)" autocomplete="off"/>
+  <div class="nav-center">
+    <button class="btn-primary" onclick="App.goWrite()">+ Write</button>
   </div>
   <div id="nav-auth"></div>
 </nav>
 
 <div id="main"><div class="loading"><span class="spin">◌</span> Loading…</div></div>
 
-<div id="modal-overlay" onclick="App.modalOuter(event)">
+<div id="modal-overlay" onclick="App.modalClickOutside(event)">
   <div id="modal-box"></div>
 </div>
+
 <div id="toast"></div>
 
-<!-- Firebase compat -->
+<!-- Firebase via CDN (no bundler needed) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<!-- Quill rich text editor -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 
 <script>
-// ─── Firebase ────────────────────────────────────────────────
+// ─── Firebase Init ───────────────────────────────────────────
 firebase.initializeApp({
-  apiKey:"AIzaSyB1kOebyVKpGVCUoG6e5WBurOK-cqMTDDA",
-  authDomain:"azul-azul-azul.firebaseapp.com",
-  projectId:"azul-azul-azul",
-  storageBucket:"azul-azul-azul.firebasestorage.app",
-  messagingSenderId:"544736797044",
-  appId:"1:544736797044:web:7863b3c74e71e10daacc21",
-  measurementId:"G-LGJDK6MPQL"
+  apiKey: "AIzaSyB1kOebyVKpGVCUoG6e5WBurOK-cqMTDDA",
+  authDomain: "azul-azul-azul.firebaseapp.com",
+  projectId: "azul-azul-azul",
+  storageBucket: "azul-azul-azul.firebasestorage.app",
+  messagingSenderId: "544736797044",
+  appId: "1:544736797044:web:7863b3c74e71e10daacc21",
+  measurementId: "G-LGJDK6MPQL"
 });
+
 const auth = firebase.auth();
 const db   = firebase.firestore();
-const FV   = firebase.firestore.FieldValue;
-
-// ─── Constants ───────────────────────────────────────────────
-const GENRES = ['Fiction','Non-fiction','Poetry','Romance','Horror','Sci-Fi','Fantasy','Mystery','True Story','Humor','Personal','Other'];
-const BADGES = [
-  {id:'first_story', icon:'✍️', label:'First Story',  desc:'Published your first story'},
-  {id:'storyteller', icon:'📖', label:'Storyteller',  desc:'Published 5 stories'},
-  {id:'beloved',     icon:'♥',  label:'Beloved',      desc:'Received 10 likes total'},
-  {id:'popular',     icon:'🔥', label:'Popular',      desc:'One story got 5 likes'},
-  {id:'social',      icon:'💬', label:'Social',       desc:'Posted 10 comments'},
-  {id:'followed',    icon:'⭐', label:'Rising Star',  desc:'Got your first follower'},
-];
 
 // ─── App ─────────────────────────────────────────────────────
 const App = (() => {
   let user = null;
   let unsub = null;
   let page  = 'feed';
-  let activeGenre = '';
-  let activeSort  = 'new';
-  let searchQ     = '';
-  let searchTimer = null;
 
-  // ── utils ──
-  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
-  function ago(ts){
-    if(!ts)return'';
-    const d=ts.toDate?ts.toDate():new Date(ts);
-    const s=Math.floor((Date.now()-d)/1000);
-    if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+'m ago';
-    if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';
+  // ── helpers ──
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
-  function readTime(html){
-    const words=(html||'').replace(/<[^>]+>/g,' ').trim().split(/\s+/).length;
-    return Math.max(1,Math.round(words/200))+' min read';
+  function ago(ts) {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    const s = Math.floor((Date.now()-d)/1000);
+    if (s<60) return 'just now';
+    if (s<3600) return Math.floor(s/60)+'m ago';
+    if (s<86400) return Math.floor(s/3600)+'h ago';
+    return Math.floor(s/86400)+'d ago';
   }
-  function toast(msg){
-    const t=document.getElementById('toast');
-    t.textContent=msg;t.classList.add('show');
-    clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._tid);
+    t._tid = setTimeout(()=>t.classList.remove('show'), 3200);
   }
-  function main(){return document.getElementById('main')}
-  function stopUnsub(){if(unsub){unsub();unsub=null;}}
-  function stripHtml(h){const d=document.createElement('div');d.innerHTML=h;return d.textContent||''}
-
-  // ── badges ──
-  async function checkBadges(uid){
-    if(!uid)return;
-    try{
-      const uSnap = await db.collection('users').doc(uid).get();
-      const uData = uSnap.exists?uSnap.data():{};
-      const earned = new Set(uData.badges||[]);
-      const storSnap = await db.collection('stories').where('authorId','==',uid).get();
-      const stories = storSnap.docs.map(d=>({id:d.id,...d.data()}));
-      const totalLikes = stories.reduce((a,s)=>(a+(s.likes||[]).length),0);
-      const maxLikes   = stories.reduce((a,s)=>Math.max(a,(s.likes||[]).length),0);
-      const commSnap   = await db.collection('stories').get();
-      let totalComments=0;
-      commSnap.docs.forEach(d=>{(d.data().comments||[]).forEach(c=>{if(c.authorId===uid)totalComments++;})});
-      const follSnap = await db.collection('users').doc(uid).get();
-      const followers = (follSnap.exists?follSnap.data().followers||[]:[] ).length;
-      const newBadges=[];
-      if(stories.length>=1&&!earned.has('first_story'))newBadges.push('first_story');
-      if(stories.length>=5&&!earned.has('storyteller'))newBadges.push('storyteller');
-      if(totalLikes>=10&&!earned.has('beloved'))newBadges.push('beloved');
-      if(maxLikes>=5&&!earned.has('popular'))newBadges.push('popular');
-      if(totalComments>=10&&!earned.has('social'))newBadges.push('social');
-      if(followers>=1&&!earned.has('followed'))newBadges.push('followed');
-      if(newBadges.length){
-        await db.collection('users').doc(uid).set({badges:[...earned,...newBadges]},{merge:true});
-        newBadges.forEach(b=>{
-          const bd=BADGES.find(x=>x.id===b);
-          if(bd)setTimeout(()=>toast(`🏅 Badge unlocked: ${bd.label}!`),800);
-        });
-      }
-    }catch(e){}
-  }
+  function main() { return document.getElementById('main'); }
+  function stopUnsub() { if(unsub){unsub();unsub=null;} }
 
   // ── nav ──
-  function renderNav(){
-    const el=document.getElementById('nav-auth');
-    if(user){
-      el.innerHTML=`
-        <span class="nav-user" onclick="App.goProfile('${user.uid}')" title="My profile">✦ ${esc(user.displayName||user.email)}</span>
-        <button class="btn-ghost btn-sm" onclick="App.goReadingList()">Saved</button>
-        <button class="btn-primary btn-sm" onclick="App.goWrite()">+ Write</button>
-        <button class="btn-ghost btn-sm" onclick="App.doSignOut()">Out</button>`;
-    }else{
-      el.innerHTML=`
-        <button class="btn-ghost btn-sm" onclick="App.openModal('login')">Sign in</button>
-        <button class="btn-primary btn-sm" onclick="App.openModal('register')">Join</button>
-        <button class="btn-primary btn-sm" onclick="App.goWrite()" style="margin-left:4px">+ Write</button>`;
+  function renderNav() {
+    const el = document.getElementById('nav-auth');
+    if (user) {
+      el.innerHTML = `
+        <span class="nav-user">✦ ${esc(user.displayName||user.email)}</span>
+        <button class="btn-ghost" onclick="App.signOut()">Sign out</button>`;
+    } else {
+      el.innerHTML = `
+        <button class="btn-ghost" onclick="App.openModal('login')">Sign in</button>
+        <button class="btn-primary" onclick="App.openModal('register')">Join</button>`;
     }
-  }
-
-  // ── search ──
-  function onSearch(val){
-    clearTimeout(searchTimer);
-    searchTimer=setTimeout(()=>{searchQ=val.trim().toLowerCase();goFeed();},320);
   }
 
   // ── feed ──
-  function goFeed(){
-    page='feed';stopUnsub();
-    main().innerHTML=`<div class="loading"><span class="spin">◌</span> Loading stories…</div>`;
-    let q=db.collection('stories');
-    if(activeGenre) q=q.where('genres','array-contains',activeGenre);
-    q=q.orderBy('createdAt','desc');
-    unsub=q.onSnapshot(snap=>{
-      let docs=snap.docs.filter(d=>{
-        const data=d.data();
-        if(data.privacy==='private'&&data.authorId!==user?.uid)return false;
-        if(searchQ){
-          const hay=(data.title+' '+(data.authorName||'')+' '+stripHtml(data.body||'')).toLowerCase();
-          if(!hay.includes(searchQ))return false;
-        }
-        return true;
-      });
-      if(activeSort==='likes') docs=docs.sort((a,b)=>(b.data().likes||[]).length-(a.data().likes||[]).length);
-      renderFeed(docs);
-    },err=>{
-      main().innerHTML=`<div class="empty-state"><p style="color:#e89090">⚠ ${esc(err.message)}</p></div>`;
-    });
-  }
-
-  async function renderFeed(docs){
-    // Build sidebar data
-    const allSnap = await db.collection('stories').get();
-    const authorCounts={};
-    allSnap.docs.forEach(d=>{
-      const data=d.data();
-      if(data.authorId&&!data.anonymous){
-        if(!authorCounts[data.authorId])authorCounts[data.authorId]={name:data.authorName||'Unknown',count:0,likes:0};
-        authorCounts[data.authorId].count++;
-        authorCounts[data.authorId].likes+=(data.likes||[]).length;
+  function goFeed() {
+    page = 'feed';
+    stopUnsub();
+    main().innerHTML = `<div class="loading"><span class="spin">◌</span> Loading stories…</div>`;
+    const q = db.collection('stories').orderBy('createdAt','desc');
+    unsub = q.onSnapshot(snap => {
+      if (snap.empty) {
+        main().innerHTML = `<div class="empty-state">
+          <div class="empty-icon">✦</div>
+          <p>No stories yet. Be the first to share.</p>
+          <button class="btn-primary" onclick="App.goWrite()">Write a story</button>
+        </div>`;
+        return;
       }
+      main().innerHTML = `<div class="feed">${snap.docs.map(d=>cardHTML(d.id,d.data())).join('')}</div>`;
+    }, err => {
+      main().innerHTML = `<div class="empty-state"><p style="color:#e89090">⚠ Could not load stories: ${esc(err.message)}</p></div>`;
     });
-    const leaderboard=Object.entries(authorCounts).sort((a,b)=>b[1].likes-a[1].likes).slice(0,5);
-
-    // My badges for sidebar
-    let myBadges=[];
-    if(user){
-      const uSnap=await db.collection('users').doc(user.uid).get();
-      myBadges=uSnap.exists?(uSnap.data().badges||[]):[];
-    }
-
-    const feedHtml = docs.length===0
-      ? `<div class="empty-state"><div class="empty-icon">✦</div><p>No stories found.</p><button class="btn-primary" onclick="App.goWrite()">Write the first one</button></div>`
-      : `<div class="feed">${docs.map(d=>cardHTML(d.id,d.data())).join('')}</div>`;
-
-    const lbHtml = leaderboard.map(([uid,info],i)=>`
-      <div class="leaderboard-item">
-        <span class="lb-rank">${['🥇','🥈','🥉','4','5'][i]}</span>
-        <span class="lb-name" onclick="App.goProfile('${uid}')">${esc(info.name)}</span>
-        <span class="lb-count">♥ ${info.likes}</span>
-      </div>`).join('');
-
-    const badgeHtml = BADGES.map(b=>`
-      <div class="badge-item ${myBadges.includes(b.id)?'earned':''}" title="${b.desc}">
-        <span class="badge-icon">${b.icon}</span>${b.label}
-      </div>`).join('');
-
-    main().innerHTML=`
-      <div class="page">
-        <div class="filter-bar">
-          <span class="label">Genre:</span>
-          <span class="tag-pill ${!activeGenre?'active':''}" onclick="App.setGenre('')">All</span>
-          ${GENRES.map(g=>`<span class="tag-pill ${activeGenre===g?'active':''}" onclick="App.setGenre('${g}')">${g}</span>`).join('')}
-          <select class="sort-select" onchange="App.setSort(this.value)">
-            <option value="new" ${activeSort==='new'?'selected':''}>Newest</option>
-            <option value="likes" ${activeSort==='likes'?'selected':''}>Most Liked</option>
-          </select>
-        </div>
-        <div class="two-col">
-          <div>${feedHtml}</div>
-          <div class="sidebar">
-            ${user?`<div class="sidebar-card">
-              <div class="sidebar-title">🏅 Your Badges</div>
-              <div class="badge-grid">${badgeHtml}</div>
-            </div>`:''}
-            <div class="sidebar-card">
-              <div class="sidebar-title">🔥 Top Writers</div>
-              ${lbHtml||'<p style="font-size:.8rem;color:var(--text3)">No writers yet.</p>'}
-            </div>
-          </div>
-        </div>
-      </div>`;
   }
 
-  function setGenre(g){activeGenre=g;goFeed();}
-  function setSort(s){activeSort=s;goFeed();}
-
-  function cardHTML(id,d){
-    const liked=user&&(d.likes||[]).includes(user.uid);
-    const saved=user&&(d.savedBy||[]).includes(user.uid);
-    const author=d.anonymous?'✦ Anonymous':esc(d.authorName||'Unknown');
-    const preview=stripHtml(d.body||'').substring(0,200)+((stripHtml(d.body||'')).length>200?'…':'');
-    const isOwner=user&&user.uid===d.authorId;
-    const privacyBadge=isOwner?`<span class="privacy-badge ${d.privacy||'public'}">${d.privacy||'public'}</span>`:'';
-    const tagsHtml=(d.genres||[]).map(g=>`<span class="genre-tag">${esc(g)}</span>`).join('');
+  function cardHTML(id, d) {
+    const liked = user && (d.likes||[]).includes(user.uid);
+    const author = d.anonymous ? '✦ Anonymous' : esc(d.authorName||'Unknown');
+    const preview = esc(d.body||'').substring(0,220) + ((d.body||'').length>220?'…':'');
+    const isOwner = user && user.uid===d.authorId;
     return `
     <article class="card" onclick="App.openStory('${id}')">
       <div class="card-header">
         <div class="card-meta">
-          <span class="author-tag ${d.anonymous?'anon':''}" onclick="event.stopPropagation();${d.authorId&&!d.anonymous?`App.goProfile('${d.authorId}')`:'void 0'}">${author}</span>
+          <span class="author-tag ${d.anonymous?'anon':''}">${author}</span>
           <span class="time-tag">${ago(d.createdAt)}</span>
-          ${privacyBadge}
         </div>
-        <div class="card-actions">
-          ${isOwner?`<button class="btn-danger" onclick="event.stopPropagation();App.deleteStory('${id}')">✕</button>`:''}
-        </div>
+        ${isOwner?`<button class="btn-delete" onclick="event.stopPropagation();App.deleteStory('${id}')">✕</button>`:''}
       </div>
       <h2 class="card-title">${esc(d.title)}</h2>
-      ${tagsHtml?`<div class="card-tags">${tagsHtml}</div>`:''}
-      <p class="card-preview">${esc(preview)}</p>
+      <p class="card-preview">${preview}</p>
       <div class="card-footer">
         <button class="react-btn ${liked?'liked':''}" onclick="event.stopPropagation();App.toggleLike('${id}',${liked})">
           ${liked?'♥':'♡'} <span>${(d.likes||[]).length}</span>
@@ -477,380 +505,278 @@ const App = (() => {
         <button class="react-btn" onclick="event.stopPropagation();App.openStory('${id}')">
           ◇ <span>${(d.comments||[]).length}</span>
         </button>
-        <button class="react-btn ${saved?'saved':''}" onclick="event.stopPropagation();App.toggleSave('${id}',${saved})" title="${saved?'Remove from reading list':'Save to reading list'}">
-          ${saved?'🔖':'🔖'} ${saved?'Saved':'Save'}
-        </button>
-        <span class="read-time">${readTime(d.body)}</span>
       </div>
     </article>`;
   }
 
   // ── story ──
-  async function openStory(id){
-    page='story';stopUnsub();
-    main().innerHTML=`<div class="loading"><span class="spin">◌</span></div>`;
-    try{
-      const snap=await db.collection('stories').doc(id).get();
-      if(!snap.exists){main().innerHTML=`<p>Story not found.</p>`;return;}
-      const d=snap.data();
-      if(d.privacy==='private'&&d.authorId!==user?.uid){
-        main().innerHTML=`<div class="empty-state"><div class="empty-icon">🔒</div><p>This story is private.</p></div>`;return;
-      }
-      const liked=user&&(d.likes||[]).includes(user.uid);
-      const saved=user&&(d.savedBy||[]).includes(user.uid);
-      const author=d.anonymous?'✦ Anonymous':esc(d.authorName||'Unknown');
-      const isOwner=user&&user.uid===d.authorId;
-      // Follow check
-      let isFollowing=false;
-      if(user&&d.authorId&&!d.anonymous){
-        const uSnap=await db.collection('users').doc(d.authorId).get();
-        isFollowing=uSnap.exists&&(uSnap.data().followers||[]).includes(user.uid);
-      }
-      const comments=(d.comments||[]).length
-        ?(d.comments||[]).map(c=>`<div class="comment"><span class="comment-author">${c.anonymous?'✦ Anonymous':esc(c.authorName||'Unknown')}</span><span class="comment-time">${ago(c.createdAt)}</span><p>${esc(c.text)}</p></div>`).join('')
-        :`<p class="no-comments">No comments yet. Start the conversation.</p>`;
-      const tagsHtml=(d.genres||[]).map(g=>`<span class="genre-tag">${esc(g)}</span>`).join('');
+  async function openStory(id) {
+    page = 'story';
+    stopUnsub();
+    main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
+    try {
+      const snap = await db.collection('stories').doc(id).get();
+      if (!snap.exists) { main().innerHTML=`<p>Story not found.</p>`; return; }
+      const d = snap.data();
+      const liked = user && (d.likes||[]).includes(user.uid);
+      const author = d.anonymous ? '✦ Anonymous' : esc(d.authorName||'Unknown');
+      const isOwner = user && user.uid===d.authorId;
+      const comments = (d.comments||[]).length
+        ? (d.comments||[]).map(c=>`
+          <div class="comment">
+            <span class="comment-author">${c.anonymous?'✦ Anonymous':esc(c.authorName||'Unknown')}</span>
+            <span class="comment-time">${ago(c.createdAt)}</span>
+            <p>${esc(c.text)}</p>
+          </div>`).join('')
+        : `<p class="no-comments">No comments yet.</p>`;
 
-      main().innerHTML=`
-        <div class="page">
+      main().innerHTML = `
+        <div class="story-view">
           <button class="back-btn" onclick="App.goFeed()">← Back to feed</button>
           <div class="story-full">
             <div class="story-top">
               <span class="author-tag ${d.anonymous?'anon':''}">${author}</span>
               <span class="time-tag">${ago(d.createdAt)}</span>
-              <span class="time-tag">${readTime(d.body)}</span>
-              ${isOwner?`<span class="privacy-badge ${d.privacy||'public'}">${d.privacy||'public'}</span>`:''}
-              ${isOwner?`<button class="btn-danger" onclick="App.deleteStory('${id}')">✕ Delete</button>`:''}
+              ${isOwner?`<button class="btn-delete" onclick="App.deleteStory('${id}')">✕ Delete</button>`:''}
             </div>
-            ${tagsHtml?`<div class="card-tags" style="margin-bottom:14px">${tagsHtml}</div>`:''}
-            <h1 class="story-h1">${esc(d.title)}</h1>
-            <div class="story-body-html">${d.body||''}</div>
+            <h1 class="story-title">${esc(d.title)}</h1>
+            <div class="story-body">${esc(d.body).replace(/\n/g,'<br/>')}</div>
             <div class="story-actions">
-              <button class="react-btn ${liked?'liked':''}" id="like-btn" onclick="App.toggleLike('${id}',${liked},true)">
+              <button class="react-btn big ${liked?'liked':''}" id="like-btn" onclick="App.toggleLike('${id}',${liked},true)">
                 ${liked?'♥':'♡'} ${(d.likes||[]).length} likes
               </button>
-              <button class="react-btn ${saved?'saved':''}" onclick="App.toggleSave('${id}',${saved},true)">
-                🔖 ${saved?'Saved':'Save'}
-              </button>
-              ${d.authorId&&!d.anonymous&&user&&!isOwner?`
-                <button class="follow-btn ${isFollowing?'following':''}" id="follow-btn" onclick="App.toggleFollow('${d.authorId}',${isFollowing})">
-                  ${isFollowing?'✓ Following':'+ Follow'}
-                </button>`:''}
             </div>
           </div>
           <div class="comments-section">
             <h3 class="comments-heading">Comments</h3>
             <div id="comments-list">${comments}</div>
             <div class="comment-form">
-              <textarea class="field" id="comment-text" placeholder="Write a comment…" rows="3"></textarea>
+              <textarea id="comment-text" placeholder="Write a comment…" rows="3"></textarea>
               <div class="comment-controls">
-                <label class="anon-label"><input type="checkbox" id="comment-anon"/> Post anonymously</label>
-                <button class="btn-primary" onclick="App.postComment('${id}')">Post comment</button>
+                <label class="anon-label">
+                  <input type="checkbox" id="comment-anon"/> Post anonymously
+                </label>
+                <button class="btn-primary" onclick="App.postComment('${id}')">Post</button>
               </div>
             </div>
           </div>
         </div>`;
-    }catch(e){main().innerHTML=`<p style="color:#e89090">Error: ${esc(e.message)}</p>`;}
+    } catch(e) {
+      main().innerHTML = `<p style="color:#e89090">Error: ${esc(e.message)}</p>`;
+    }
   }
 
   // ── write ──
-  let quill=null;
-  let writeTags=[];
-
-  function goWrite(){
-    page='write';stopUnsub();
-    main().innerHTML=`
-      <div class="page">
+  function goWrite() {
+    page = 'write';
+    stopUnsub();
+    main().innerHTML = `
+      <div class="write-view">
         <button class="back-btn" onclick="App.goFeed()">← Back</button>
         <h2 class="write-heading">Tell your story</h2>
-        <input type="text" class="field" id="w-title" placeholder="Give it a title…" maxlength="120" style="margin-bottom:12px;font-size:1.1rem"/>
-        <div class="write-meta">
-          <div>
-            <label class="field-label">Genre tags</label>
-            <div class="tags-input-wrap" id="tags-wrap" onclick="document.getElementById('tags-input').focus()">
-              <input id="tags-input" placeholder="Type a genre, press Enter…" onkeydown="App.tagKey(event)"/>
-            </div>
-            <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
-              ${GENRES.map(g=>`<span class="tag-pill" style="font-size:.7rem" onclick="App.addTag('${g}')">${g}</span>`).join('')}
-            </div>
-          </div>
-          <div>
-            <label class="field-label">Privacy</label>
-            <select class="field" id="w-privacy">
-              <option value="public">🌐 Public — anyone can see</option>
-              <option value="unlisted">🔗 Unlisted — only via link</option>
-              <option value="private">🔒 Private — only you</option>
-            </select>
-            <div style="margin-top:12px">
-              <label class="anon-label">
-                <input type="checkbox" id="w-anon" ${!user?'checked disabled':''}/>
-                Post anonymously${!user?' (not signed in)':''}
-              </label>
-            </div>
-          </div>
-        </div>
-        <div class="quill-wrap">
-          <div id="quill-editor"></div>
-        </div>
+        <input type="text" class="story-title-input" id="w-title" placeholder="Give it a title…" maxlength="120"/>
+        <textarea class="story-body-input" id="w-body" placeholder="Write anything. No rules." rows="14"></textarea>
         <div class="write-footer">
-          <span style="font-size:.78rem;color:var(--text3)">Your story is saved when published.</span>
+          <label class="anon-label">
+            <input type="checkbox" id="w-anon" ${!user?'checked disabled':''}/>
+            Post anonymously${!user?' (you\'re not signed in)':''}
+          </label>
           <button class="btn-primary large" id="publish-btn" onclick="App.submitStory()">Publish ✦</button>
         </div>
       </div>`;
-    writeTags=[];
-    quill=new Quill('#quill-editor',{
-      theme:'snow',
-      placeholder:'Write anything. No rules.',
-      modules:{toolbar:[[{header:[1,2,3,false]}],['bold','italic','underline'],['blockquote'],['link','image'],['clean']]}
-    });
   }
 
-  function addTag(t){
-    t=t.trim();
-    if(!t||writeTags.includes(t)||writeTags.length>=5)return;
-    writeTags.push(t);renderTagsInput();
-  }
-  function removeTag(t){writeTags=writeTags.filter(x=>x!==t);renderTagsInput();}
-  function tagKey(e){
-    if(e.key==='Enter'||e.key===','){e.preventDefault();addTag(e.target.value);e.target.value='';}
-  }
-  function renderTagsInput(){
-    const wrap=document.getElementById('tags-wrap');
-    if(!wrap)return;
-    const inp=document.getElementById('tags-input');
-    const val=inp?inp.value:'';
-    wrap.innerHTML=writeTags.map(t=>`<span class="genre-tag">${esc(t)}<span class="rm" onclick="App.removeTag('${t}')"> ✕</span></span>`).join('')
-      +`<input id="tags-input" placeholder="${writeTags.length?'':'Type a genre, press Enter…'}" onkeydown="App.tagKey(event)" value="${esc(val)}"/>`;
-    document.getElementById('tags-input').focus();
-  }
-
-  async function submitStory(){
-    const title=document.getElementById('w-title').value.trim();
-    const body=quill?quill.root.innerHTML:'';
-    const anon=document.getElementById('w-anon').checked||!user;
-    const privacy=document.getElementById('w-privacy').value||'public';
-    if(!title){toast('Please add a title.');return;}
-    if(!quill||quill.getText().trim().length<10){toast('Write at least a few words!');return;}
-    const btn=document.getElementById('publish-btn');
-    btn.disabled=true;btn.textContent='Publishing…';
-    try{
+  async function submitStory() {
+    const title = document.getElementById('w-title').value.trim();
+    const body  = document.getElementById('w-body').value.trim();
+    const anon  = document.getElementById('w-anon').checked || !user;
+    if (!title) { toast('Please add a title.'); return; }
+    if (!body)  { toast('Please write your story.'); return; }
+    const btn = document.getElementById('publish-btn');
+    btn.disabled = true; btn.textContent = 'Publishing…';
+    try {
       await db.collection('stories').add({
-        title,body,
-        anonymous:anon,
-        privacy,
-        genres:writeTags,
-        authorId:user?user.uid:null,
-        authorName:user?(user.displayName||user.email):null,
-        likes:[],comments:[],savedBy:[],
-        createdAt:FV.serverTimestamp()
+        title, body,
+        anonymous: anon,
+        authorId:   user ? user.uid  : null,
+        authorName: user ? (user.displayName||user.email) : null,
+        likes: [],
+        comments: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
-      if(user)checkBadges(user.uid);
       toast('Story published! ✦');
       goFeed();
-    }catch(e){
-      toast('Error: '+e.message);
-      btn.disabled=false;btn.textContent='Publish ✦';
+    } catch(e) {
+      toast('Error publishing: ' + e.message);
+      btn.disabled=false; btn.textContent='Publish ✦';
     }
   }
 
   // ── like ──
-  async function toggleLike(id,liked,reload){
-    if(!user){toast('Sign in to like stories.');return;}
-    try{
+  async function toggleLike(id, liked, reload) {
+    if (!user) { toast('Sign in to like stories.'); return; }
+    try {
       await db.collection('stories').doc(id).update({
-        likes:liked?FV.arrayRemove(user.uid):FV.arrayUnion(user.uid)
+        likes: liked
+          ? firebase.firestore.FieldValue.arrayRemove(user.uid)
+          : firebase.firestore.FieldValue.arrayUnion(user.uid)
       });
-      if(!liked)checkBadges(user.uid); // might unlock badge
-      if(reload)openStory(id);
-    }catch(e){toast('Error: '+e.message);}
-  }
-
-  // ── save ──
-  async function toggleSave(id,saved,reload){
-    if(!user){toast('Sign in to save stories.');return;}
-    try{
-      await db.collection('stories').doc(id).update({
-        savedBy:saved?FV.arrayRemove(user.uid):FV.arrayUnion(user.uid)
-      });
-      toast(saved?'Removed from reading list.':'Saved to reading list ✦');
-      if(reload)openStory(id);
-    }catch(e){toast('Error: '+e.message);}
-  }
-
-  // ── follow ──
-  async function toggleFollow(authorId,isFollowing){
-    if(!user){toast('Sign in to follow writers.');return;}
-    try{
-      await db.collection('users').doc(authorId).set({
-        followers:isFollowing?FV.arrayRemove(user.uid):FV.arrayUnion(user.uid)
-      },{merge:true});
-      toast(isFollowing?'Unfollowed.':'Now following! ✦');
-      if(!isFollowing)checkBadges(authorId);
-      const btn=document.getElementById('follow-btn');
-      if(btn){btn.textContent=isFollowing?'+ Follow':'✓ Following';btn.classList.toggle('following',!isFollowing);btn.onclick=()=>toggleFollow(authorId,!isFollowing);}
-    }catch(e){toast('Error: '+e.message);}
+      if (reload) openStory(id);
+    } catch(e) { toast('Error: '+e.message); }
   }
 
   // ── comment ──
-  async function postComment(storyId){
-    const text=document.getElementById('comment-text').value.trim();
-    const anon=document.getElementById('comment-anon').checked||!user;
-    if(!text){toast('Write something first.');return;}
-    try{
+  async function postComment(storyId) {
+    const text = document.getElementById('comment-text').value.trim();
+    const anon = document.getElementById('comment-anon').checked || !user;
+    if (!text) { toast('Write something first.'); return; }
+    try {
       await db.collection('stories').doc(storyId).update({
-        comments:FV.arrayUnion({text,anonymous:anon,authorName:user?(user.displayName||user.email):null,authorId:user?user.uid:null,createdAt:new Date().toISOString()})
+        comments: firebase.firestore.FieldValue.arrayUnion({
+          text,
+          anonymous: anon,
+          authorName: user?(user.displayName||user.email):null,
+          authorId: user?user.uid:null,
+          createdAt: new Date().toISOString()
+        })
       });
       document.getElementById('comment-text').value='';
-      if(user)checkBadges(user.uid);
       openStory(storyId);
-    }catch(e){toast('Error: '+e.message);}
+    } catch(e) { toast('Error: '+e.message); }
   }
 
   // ── delete ──
-  async function deleteStory(id){
-    if(!confirm('Delete this story forever?'))return;
-    try{await db.collection('stories').doc(id).delete();toast('Story deleted.');goFeed();}
-    catch(e){toast('Error: '+e.message);}
-  }
-
-  // ── reading list ──
-  async function goReadingList(){
-    page='list';stopUnsub();
-    if(!user){openModal('login');return;}
-    main().innerHTML=`<div class="loading"><span class="spin">◌</span></div>`;
-    try{
-      const snap=await db.collection('stories').where('savedBy','array-contains',user.uid).orderBy('createdAt','desc').get();
-      main().innerHTML=`
-        <div class="page">
-          <button class="back-btn" onclick="App.goFeed()">← Back</button>
-          <h2 class="write-heading" style="margin-bottom:20px">🔖 Reading List</h2>
-          ${snap.empty
-            ?`<div class="reading-list-empty">No saved stories yet.<br/>Hit 🔖 on any story to save it here.</div>`
-            :`<div class="feed">${snap.docs.map(d=>cardHTML(d.id,d.data())).join('')}</div>`}
-        </div>`;
-    }catch(e){main().innerHTML=`<p style="color:#e89090">Error: ${esc(e.message)}</p>`;}
-  }
-
-  // ── profile ──
-  async function goProfile(uid){
-    page='profile';stopUnsub();
-    main().innerHTML=`<div class="loading"><span class="spin">◌</span></div>`;
-    try{
-      const [storSnap,uSnap]=await Promise.all([
-        db.collection('stories').where('authorId','==',uid).where('anonymous','==',false).orderBy('createdAt','desc').get(),
-        db.collection('users').doc(uid).get()
-      ]);
-      const uData=uSnap.exists?uSnap.data():{};
-      const badges=uData.badges||[];
-      const followers=(uData.followers||[]).length;
-      const isMe=user&&user.uid===uid;
-      const isFollowing=user&&!isMe&&(uData.followers||[]).includes(user.uid);
-      const displayName=user&&isMe?(user.displayName||user.email):(storSnap.docs[0]?.data().authorName||'Writer');
-      const totalLikes=storSnap.docs.reduce((a,d)=>a+(d.data().likes||[]).length,0);
-      const badgesHtml=badges.map(b=>{const bd=BADGES.find(x=>x.id===b);return bd?`<span class="badge-mini" title="${bd.desc}">${bd.icon}</span>`:''}).join('');
-
-      main().innerHTML=`
-        <div class="page">
-          <button class="back-btn" onclick="App.goFeed()">← Back</button>
-          <div class="profile-header">
-            <div class="profile-avatar">${(displayName[0]||'?').toUpperCase()}</div>
-            <div style="flex:1">
-              <div class="profile-name">${esc(displayName)}</div>
-              <div style="font-size:.82rem;color:var(--text2)">${storSnap.size} stor${storSnap.size===1?'y':'ies'} · ♥ ${totalLikes} likes · ${followers} follower${followers===1?'':'s'}</div>
-              ${badgesHtml?`<div class="badges-row">${badgesHtml}</div>`:''}
-              ${!isMe&&user?`<button class="follow-btn ${isFollowing?'following':''}" style="margin-top:12px" onclick="App.toggleFollow('${uid}',${isFollowing})">${isFollowing?'✓ Following':'+ Follow'}</button>`:''}
-            </div>
-          </div>
-          <div class="tabs">
-            <button class="tab active">Stories</button>
-          </div>
-          ${storSnap.empty
-            ?`<div class="empty-state"><p>No public stories yet.</p></div>`
-            :`<div class="feed">${storSnap.docs.map(d=>cardHTML(d.id,d.data())).join('')}</div>`}
-        </div>`;
-    }catch(e){main().innerHTML=`<p style="color:#e89090">Error: ${esc(e.message)}</p>`;}
+  async function deleteStory(id) {
+    if (!confirm('Delete this story forever?')) return;
+    try {
+      await db.collection('stories').doc(id).delete();
+      toast('Story deleted.');
+      goFeed();
+    } catch(e) { toast('Error: '+e.message); }
   }
 
   // ── modal ──
-  function openModal(type){
-    const overlay=document.getElementById('modal-overlay');
-    const box=document.getElementById('modal-box');
+  function openModal(type) {
+    const overlay = document.getElementById('modal-overlay');
+    const box     = document.getElementById('modal-box');
     overlay.classList.add('visible');
-    if(type==='register'){
-      box.innerHTML=`
+    if (type==='register') {
+      box.innerHTML = `
         <button class="modal-close" onclick="App.closeModal()">✕</button>
         <h2 class="modal-title">Create account</h2>
         <div class="error-msg" id="modal-err"></div>
-        <input type="text" class="field" id="r-name" placeholder="Your name" autocomplete="name"/>
-        <input type="email" class="field" id="r-email" placeholder="Email address" autocomplete="email"/>
-        <input type="password" class="field" id="r-pass" placeholder="Password (6+ characters)" autocomplete="new-password"/>
+        <input type="text"     id="r-name"  placeholder="Your name" autocomplete="name"/>
+        <input type="email"    id="r-email" placeholder="Email address" autocomplete="email"/>
+        <input type="password" id="r-pass"  placeholder="Password (6+ characters)" autocomplete="new-password"/>
         <button class="btn-primary full" id="modal-btn" onclick="App.doRegister()">Create account</button>
         <p class="modal-switch">Already have an account? <a onclick="App.openModal('login')">Sign in</a></p>`;
-    }else{
-      box.innerHTML=`
+    } else {
+      box.innerHTML = `
         <button class="modal-close" onclick="App.closeModal()">✕</button>
         <h2 class="modal-title">Welcome back</h2>
         <div class="error-msg" id="modal-err"></div>
-        <input type="email" class="field" id="l-email" placeholder="Email address" autocomplete="email"/>
-        <input type="password" class="field" id="l-pass" placeholder="Password" autocomplete="current-password"/>
+        <input type="email"    id="l-email" placeholder="Email address" autocomplete="email"/>
+        <input type="password" id="l-pass"  placeholder="Password" autocomplete="current-password"/>
         <button class="btn-primary full" id="modal-btn" onclick="App.doLogin()">Sign in</button>
         <p class="modal-switch">No account? <a onclick="App.openModal('register')">Create one</a></p>`;
     }
   }
-  function modalErr(msg){const e=document.getElementById('modal-err');if(e){e.textContent=msg;e.classList.add('show');}}
-  function closeModal(){document.getElementById('modal-overlay').classList.remove('visible');}
-  function modalOuter(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+
+  function showModalError(msg) {
+    const el = document.getElementById('modal-err');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('visible');
+  }
+
+  function modalClickOutside(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
 
   // ── auth ──
-  async function doRegister(){
-    const name=document.getElementById('r-name').value.trim();
-    const email=document.getElementById('r-email').value.trim();
-    const pass=document.getElementById('r-pass').value;
-    if(!name)return modalErr('Please enter your name.');
-    if(!email)return modalErr('Please enter your email.');
-    if(pass.length<6)return modalErr('Password must be at least 6 characters.');
-    const btn=document.getElementById('modal-btn');
-    btn.disabled=true;btn.textContent='Creating…';
-    try{
-      const cred=await auth.createUserWithEmailAndPassword(email,pass);
-      await cred.user.updateProfile({displayName:name});
-      await db.collection('users').doc(cred.user.uid).set({displayName:name,email,badges:[],followers:[],createdAt:FV.serverTimestamp()},{merge:true});
-      user=auth.currentUser;
-      closeModal();renderNav();toast(`Welcome to Azul, ${name}! ✦`);
-      if(page==='feed')goFeed();
-    }catch(e){
-      btn.disabled=false;btn.textContent='Create account';
-      const m={'auth/email-already-in-use':'That email is already registered.','auth/invalid-email':'Invalid email.','auth/weak-password':'Password too weak.','auth/operation-not-allowed':'Enable Email/Password in Firebase Console → Authentication.','auth/network-request-failed':'Network error.'};
-      modalErr(m[e.code]||e.message);
+  async function doRegister() {
+    const name  = document.getElementById('r-name').value.trim();
+    const email = document.getElementById('r-email').value.trim();
+    const pass  = document.getElementById('r-pass').value;
+    if (!name)  { showModalError('Please enter your name.'); return; }
+    if (!email) { showModalError('Please enter your email.'); return; }
+    if (!pass)  { showModalError('Please enter a password.'); return; }
+    if (pass.length < 6) { showModalError('Password must be at least 6 characters.'); return; }
+    const btn = document.getElementById('modal-btn');
+    btn.disabled=true; btn.textContent='Creating account…';
+    try {
+      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      await cred.user.updateProfile({ displayName: name });
+      user = auth.currentUser;
+      closeModal();
+      renderNav();
+      toast(`Welcome to Azul, ${name}! ✦`);
+      if (page==='feed') goFeed();
+    } catch(e) {
+      btn.disabled=false; btn.textContent='Create account';
+      const msgs = {
+        'auth/email-already-in-use': 'That email is already registered. Try signing in.',
+        'auth/invalid-email': 'Invalid email address.',
+        'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
+        'auth/operation-not-allowed': '⚠ Email/password sign-in is not enabled. Go to Firebase Console → Authentication → Sign-in method → enable Email/Password.',
+        'auth/network-request-failed': 'Network error. Check your internet connection.',
+        'auth/configuration-not-found': '⚠ Firebase Auth is not configured. Enable Email/Password in Firebase Console → Authentication → Sign-in method.',
+      };
+      showModalError(msgs[e.code] || e.message);
     }
   }
 
-  async function doLogin(){
-    const email=document.getElementById('l-email').value.trim();
-    const pass=document.getElementById('l-pass').value;
-    if(!email)return modalErr('Please enter your email.');
-    if(!pass)return modalErr('Please enter your password.');
-    const btn=document.getElementById('modal-btn');
-    btn.disabled=true;btn.textContent='Signing in…';
-    try{
-      await auth.signInWithEmailAndPassword(email,pass);
-      closeModal();toast('Signed in ✦');
-    }catch(e){
-      btn.disabled=false;btn.textContent='Sign in';
-      const m={'auth/user-not-found':'No account with that email.','auth/wrong-password':'Incorrect password.','auth/invalid-credential':'Wrong email or password.','auth/too-many-requests':'Too many attempts. Try later.','auth/network-request-failed':'Network error.'};
-      modalErr(m[e.code]||e.message);
+  async function doLogin() {
+    const email = document.getElementById('l-email').value.trim();
+    const pass  = document.getElementById('l-pass').value;
+    if (!email) { showModalError('Please enter your email.'); return; }
+    if (!pass)  { showModalError('Please enter your password.'); return; }
+    const btn = document.getElementById('modal-btn');
+    btn.disabled=true; btn.textContent='Signing in…';
+    try {
+      await auth.signInWithEmailAndPassword(email, pass);
+      closeModal();
+      toast('Signed in ✦');
+    } catch(e) {
+      btn.disabled=false; btn.textContent='Sign in';
+      const msgs = {
+        'auth/user-not-found': 'No account found with that email.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/invalid-email': 'Invalid email address.',
+        'auth/invalid-credential': 'Wrong email or password.',
+        'auth/too-many-requests': 'Too many attempts. Try again later.',
+        'auth/operation-not-allowed': '⚠ Email/password sign-in is not enabled in Firebase Console.',
+        'auth/network-request-failed': 'Network error. Check your internet connection.',
+      };
+      showModalError(msgs[e.code] || e.message);
     }
   }
 
-  async function doSignOut(){await auth.signOut();toast('Signed out.');goFeed();}
+  async function signOut() {
+    await auth.signOut();
+    toast('Signed out.');
+    goFeed();
+  }
 
   // ── auth listener ──
-  auth.onAuthStateChanged(u=>{user=u;renderNav();});
+  auth.onAuthStateChanged(u => {
+    user = u;
+    renderNav();
+  });
 
   // ── init ──
-  window.addEventListener('DOMContentLoaded',()=>{renderNav();goFeed();});
+  window.addEventListener('DOMContentLoaded', () => {
+    renderNav();
+    goFeed();
+  });
 
-  return{goFeed,goWrite,goProfile,goReadingList,openStory,submitStory,toggleLike,toggleSave,toggleFollow,postComment,deleteStory,openModal,closeModal,modalOuter,doRegister,doLogin,doSignOut,onSearch,setGenre,setSort,addTag,removeTag,tagKey};
+  return { goFeed, goWrite, openStory, submitStory, toggleLike, postComment,
+           deleteStory, openModal, closeModal, modalClickOutside,
+           doRegister, doLogin, signOut };
 })();
 </script>
 </body>
