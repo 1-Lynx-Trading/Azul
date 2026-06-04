@@ -5,372 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Azul — Share Your Story</title>
 
-<!-- Firebase SDKs -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
-  import {
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    signOut, onAuthStateChanged, updateProfile
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import {
-    getFirestore, collection, addDoc, getDocs, doc, updateDoc,
-    arrayUnion, arrayRemove, onSnapshot, query, orderBy, serverTimestamp,
-    getDoc, deleteDoc
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyB1kOebyVKpGVCUoG6e5WBurOK-cqMTDDA",
-    authDomain: "azul-azul-azul.firebaseapp.com",
-    projectId: "azul-azul-azul",
-    storageBucket: "azul-azul-azul.firebasestorage.app",
-    messagingSenderId: "544736797044",
-    appId: "1:544736797044:web:7863b3c74e71e10daacc21",
-    measurementId: "G-LGJDK6MPQL"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  let currentUser = null;
-  let unsubscribeFeed = null;
-
-  /* ─── AUTH STATE ─── */
-  onAuthStateChanged(auth, user => {
-    currentUser = user;
-    renderNav();
-    if (window._currentPage === 'feed' || !window._currentPage) loadFeed();
-  });
-
-  /* ─── HELPERS ─── */
-  function esc(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-  function ago(ts) {
-    if (!ts) return '';
-    const d = ts.toDate ? ts.toDate() : new Date(ts);
-    const s = Math.floor((Date.now() - d) / 1000);
-    if (s < 60) return 'just now';
-    if (s < 3600) return Math.floor(s/60) + 'm ago';
-    if (s < 86400) return Math.floor(s/3600) + 'h ago';
-    return Math.floor(s/86400) + 'd ago';
-  }
-
-  /* ─── NAV ─── */
-  function renderNav() {
-    const nav = document.getElementById('nav-auth');
-    if (currentUser) {
-      nav.innerHTML = `
-        <span class="nav-user">✦ ${esc(currentUser.displayName || currentUser.email)}</span>
-        <button class="btn-ghost" onclick="window._signOut()">Sign out</button>
-      `;
-    } else {
-      nav.innerHTML = `
-        <button class="btn-ghost" onclick="showModal('login')">Sign in</button>
-        <button class="btn-primary" onclick="showModal('register')">Join</button>
-      `;
-    }
-  }
-
-  /* ─── FEED ─── */
-  async function loadFeed() {
-    window._currentPage = 'feed';
-    const main = document.getElementById('main');
-    main.innerHTML = `<div class="loading"><span class="spin">◌</span> Loading stories…</div>`;
-
-    if (unsubscribeFeed) unsubscribeFeed();
-
-    const q = query(collection(db, 'stories'), orderBy('createdAt', 'desc'));
-    unsubscribeFeed = onSnapshot(q, snap => {
-      if (snap.empty) {
-        main.innerHTML = `<div class="empty-state">
-          <div class="empty-icon">✦</div>
-          <p>No stories yet. Be the first to share.</p>
-          <button class="btn-primary" onclick="window._showWritePage()">Write a story</button>
-        </div>`;
-        return;
-      }
-      const cards = snap.docs.map(d => storyCard(d.id, d.data())).join('');
-      main.innerHTML = `<div class="feed">${cards}</div>`;
-    });
-  }
-
-  function storyCard(id, data) {
-    const liked = currentUser && (data.likes || []).includes(currentUser.uid);
-    const likeCount = (data.likes || []).length;
-    const commentCount = (data.comments || []).length;
-    const isOwner = currentUser && currentUser.uid === data.authorId;
-    const authorLabel = data.anonymous ? '✦ Anonymous' : esc(data.authorName || 'Unknown');
-    const preview = esc(data.body || '').substring(0, 220) + (data.body?.length > 220 ? '…' : '');
-
-    return `
-    <article class="card" onclick="window._openStory('${id}')">
-      <div class="card-header">
-        <div class="card-meta">
-          <span class="author-tag ${data.anonymous ? 'anon' : ''}">${authorLabel}</span>
-          <span class="time-tag">${ago(data.createdAt)}</span>
-        </div>
-        ${isOwner ? `<button class="btn-delete" onclick="event.stopPropagation();window._deleteStory('${id}')">✕</button>` : ''}
-      </div>
-      <h2 class="card-title">${esc(data.title)}</h2>
-      <p class="card-preview">${preview}</p>
-      <div class="card-footer">
-        <button class="react-btn ${liked ? 'liked' : ''}" onclick="event.stopPropagation();window._toggleLike('${id}', ${liked})">
-          ${liked ? '♥' : '♡'} <span>${likeCount}</span>
-        </button>
-        <button class="react-btn" onclick="event.stopPropagation();window._openStory('${id}')">
-          ◇ <span>${commentCount}</span>
-        </button>
-      </div>
-    </article>`;
-  }
-
-  /* ─── OPEN STORY ─── */
-  async function openStory(id) {
-    window._currentPage = 'story';
-    if (unsubscribeFeed) { unsubscribeFeed(); unsubscribeFeed = null; }
-    const main = document.getElementById('main');
-    main.innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
-
-    const ref = doc(db, 'stories', id);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) { main.innerHTML = `<p>Story not found.</p>`; return; }
-    const data = snap.data();
-    const liked = currentUser && (data.likes || []).includes(currentUser.uid);
-    const authorLabel = data.anonymous ? '✦ Anonymous' : esc(data.authorName || 'Unknown');
-    const isOwner = currentUser && currentUser.uid === data.authorId;
-
-    const comments = (data.comments || []).map(c => `
-      <div class="comment">
-        <span class="comment-author">${c.anonymous ? '✦ Anonymous' : esc(c.authorName || 'Unknown')}</span>
-        <span class="comment-time">${ago(c.createdAt)}</span>
-        <p>${esc(c.text)}</p>
-      </div>`).join('') || `<p class="no-comments">No comments yet. Start the conversation.</p>`;
-
-    main.innerHTML = `
-      <div class="story-view">
-        <button class="back-btn" onclick="window._loadFeed()">← Back to feed</button>
-        <div class="story-full">
-          <div class="story-top">
-            <span class="author-tag ${data.anonymous ? 'anon' : ''}">${authorLabel}</span>
-            <span class="time-tag">${ago(data.createdAt)}</span>
-            ${isOwner ? `<button class="btn-delete" onclick="window._deleteStory('${id}')">✕ Delete</button>` : ''}
-          </div>
-          <h1 class="story-title">${esc(data.title)}</h1>
-          <div class="story-body">${esc(data.body).replace(/\n/g,'<br/>')}</div>
-          <div class="story-actions">
-            <button class="react-btn big ${liked ? 'liked' : ''}" onclick="window._toggleLike('${id}', ${liked}, true)">
-              ${liked ? '♥' : '♡'} ${(data.likes||[]).length} likes
-            </button>
-          </div>
-        </div>
-
-        <div class="comments-section">
-          <h3 class="comments-heading">Comments</h3>
-          <div id="comments-list">${comments}</div>
-
-          <div class="comment-form">
-            <textarea id="comment-text" placeholder="Write a comment…" rows="3"></textarea>
-            <div class="comment-controls">
-              <label class="anon-label">
-                <input type="checkbox" id="comment-anon" /> Post anonymously
-              </label>
-              <button class="btn-primary" onclick="window._postComment('${id}')">Post</button>
-            </div>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  /* ─── WRITE PAGE ─── */
-  function showWritePage() {
-    window._currentPage = 'write';
-    if (unsubscribeFeed) { unsubscribeFeed(); unsubscribeFeed = null; }
-    const main = document.getElementById('main');
-    main.innerHTML = `
-      <div class="write-view">
-        <button class="back-btn" onclick="window._loadFeed()">← Back</button>
-        <h2 class="write-heading">Tell your story</h2>
-        <input type="text" id="story-title" class="story-input" placeholder="Give it a title…" maxlength="100"/>
-        <textarea id="story-body" class="story-textarea" placeholder="Write anything. No rules." rows="14"></textarea>
-        <div class="write-footer">
-          <label class="anon-label">
-            <input type="checkbox" id="story-anon" ${!currentUser ? 'checked disabled' : ''} />
-            Post anonymously${!currentUser ? ' (required — not signed in)' : ''}
-          </label>
-          <button class="btn-primary large" onclick="window._submitStory()">Publish ✦</button>
-        </div>
-      </div>`;
-  }
-
-  /* ─── SUBMIT STORY ─── */
-  async function submitStory() {
-    const title = document.getElementById('story-title').value.trim();
-    const body = document.getElementById('story-body').value.trim();
-    const anon = document.getElementById('story-anon').checked || !currentUser;
-
-    if (!title || !body) { showToast('Please add a title and story.'); return; }
-
-    const btn = document.querySelector('.write-view .btn-primary');
-    btn.disabled = true; btn.textContent = 'Publishing…';
-
-    try {
-      await addDoc(collection(db, 'stories'), {
-        title,
-        body,
-        anonymous: anon,
-        authorId: currentUser ? currentUser.uid : null,
-        authorName: currentUser ? (currentUser.displayName || currentUser.email) : null,
-        likes: [],
-        comments: [],
-        createdAt: serverTimestamp()
-      });
-      showToast('Story published! ✦');
-      loadFeed();
-    } catch (e) {
-      showToast('Error: ' + e.message);
-      btn.disabled = false; btn.textContent = 'Publish ✦';
-    }
-  }
-
-  /* ─── LIKE ─── */
-  async function toggleLike(id, liked, reload) {
-    if (!currentUser) { showToast('Sign in to like stories.'); return; }
-    const ref = doc(db, 'stories', id);
-    try {
-      await updateDoc(ref, {
-        likes: liked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
-      });
-      if (reload) openStory(id);
-    } catch(e) { showToast('Error: ' + e.message); }
-  }
-
-  /* ─── COMMENT ─── */
-  async function postComment(storyId) {
-    const text = document.getElementById('comment-text').value.trim();
-    const anon = document.getElementById('comment-anon').checked || !currentUser;
-    if (!text) { showToast('Write something first.'); return; }
-
-    const ref = doc(db, 'stories', storyId);
-    try {
-      await updateDoc(ref, {
-        comments: arrayUnion({
-          text,
-          anonymous: anon,
-          authorName: currentUser ? (currentUser.displayName || currentUser.email) : null,
-          authorId: currentUser ? currentUser.uid : null,
-          createdAt: new Date().toISOString()
-        })
-      });
-      document.getElementById('comment-text').value = '';
-      openStory(storyId);
-    } catch(e) { showToast('Error: ' + e.message); }
-  }
-
-  /* ─── DELETE ─── */
-  async function deleteStory(id) {
-    if (!confirm('Delete this story forever?')) return;
-    try {
-      await deleteDoc(doc(db, 'stories', id));
-      showToast('Story deleted.');
-      loadFeed();
-    } catch(e) { showToast('Error: ' + e.message); }
-  }
-
-  /* ─── AUTH MODALS ─── */
-  async function doRegister() {
-    const name = document.getElementById('reg-name').value.trim();
-    const email = document.getElementById('reg-email').value.trim();
-    const pass = document.getElementById('reg-pass').value;
-    if (!name || !email || !pass) { showToast('Fill in all fields.'); return; }
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, email, pass);
-      await updateProfile(cred.user, { displayName: name });
-      closeModal();
-      showToast(`Welcome to Azul, ${name}! ✦`);
-    } catch(e) { showToast(e.message); }
-  }
-
-  async function doLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const pass = document.getElementById('login-pass').value;
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      closeModal();
-      showToast('Signed in ✦');
-    } catch(e) { showToast('Wrong email or password.'); }
-  }
-
-  async function doSignOut() {
-    await signOut(auth);
-    showToast('Signed out.');
-    loadFeed();
-  }
-
-  /* ─── TOAST ─── */
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 3000);
-  }
-
-  /* ─── MODAL ─── */
-  function showModal(type) {
-    const overlay = document.getElementById('modal-overlay');
-    const box = document.getElementById('modal-box');
-    overlay.classList.add('visible');
-
-    if (type === 'register') {
-      box.innerHTML = `
-        <button class="modal-close" onclick="window._closeModal()">✕</button>
-        <h2 class="modal-title">Create account</h2>
-        <input class="modal-input" id="reg-name" type="text" placeholder="Your name"/>
-        <input class="modal-input" id="reg-email" type="email" placeholder="Email"/>
-        <input class="modal-input" id="reg-pass" type="password" placeholder="Password (6+ chars)"/>
-        <button class="btn-primary full" onclick="window._doRegister()">Create account</button>
-        <p class="modal-switch">Already have one? <a onclick="window._showModal('login')">Sign in</a></p>`;
-    } else {
-      box.innerHTML = `
-        <button class="modal-close" onclick="window._closeModal()">✕</button>
-        <h2 class="modal-title">Sign in</h2>
-        <input class="modal-input" id="login-email" type="email" placeholder="Email"/>
-        <input class="modal-input" id="login-pass" type="password" placeholder="Password"/>
-        <button class="btn-primary full" onclick="window._doLogin()">Sign in</button>
-        <p class="modal-switch">No account? <a onclick="window._showModal('register')">Create one</a></p>`;
-    }
-  }
-
-  function closeModal() {
-    document.getElementById('modal-overlay').classList.remove('visible');
-  }
-
-  /* ─── EXPOSE TO GLOBAL ─── */
-  window._loadFeed = loadFeed;
-  window._openStory = openStory;
-  window._showWritePage = showWritePage;
-  window._submitStory = submitStory;
-  window._toggleLike = toggleLike;
-  window._postComment = postComment;
-  window._deleteStory = deleteStory;
-  window._doRegister = doRegister;
-  window._doLogin = doLogin;
-  window._signOut = doSignOut;
-  window._showModal = showModal;
-  window._closeModal = closeModal;
-
-  /* ─── INIT ─── */
-  window.addEventListener('DOMContentLoaded', () => {
-    renderNav();
-    loadFeed();
-    document.getElementById('modal-overlay').addEventListener('click', e => {
-      if (e.target === document.getElementById('modal-overlay')) closeModal();
-    });
-  });
-</script>
-
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -398,10 +32,9 @@
     line-height: 1.6;
   }
 
-  /* ─── NAVBAR ─── */
   nav {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(14,14,14,0.92);
+    background: rgba(14,14,14,0.95);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     padding: 0 24px;
@@ -412,10 +45,11 @@
   }
   .nav-logo {
     font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     color: var(--accent);
     cursor: pointer;
     letter-spacing: 0.02em;
+    user-select: none;
   }
   .nav-logo span { font-style: italic; }
   .nav-center { display: flex; gap: 8px; }
@@ -429,7 +63,6 @@
     white-space: nowrap;
   }
 
-  /* ─── BUTTONS ─── */
   button { cursor: pointer; font-family: 'DM Sans', sans-serif; border: none; outline: none; transition: all .18s; }
 
   .btn-primary {
@@ -439,11 +72,11 @@
     border-radius: 6px;
     font-size: 0.85rem;
     font-weight: 500;
-    letter-spacing: 0.02em;
   }
-  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn-primary:hover:not(:disabled) { background: var(--accent2); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
   .btn-primary.large { padding: 12px 32px; font-size: 1rem; border-radius: 8px; }
-  .btn-primary.full { width: 100%; padding: 12px; font-size: 0.95rem; margin-top: 4px; border-radius: 8px; }
+  .btn-primary.full { width: 100%; padding: 13px; font-size: 0.95rem; border-radius: 8px; margin-top: 2px; }
 
   .btn-ghost {
     background: transparent;
@@ -477,14 +110,12 @@
   }
   .back-btn:hover { color: var(--accent); }
 
-  /* ─── LAYOUT ─── */
   #main {
     max-width: 720px;
     margin: 0 auto;
     padding: 40px 20px 80px;
   }
 
-  /* ─── LOADING / EMPTY ─── */
   .loading, .empty-state {
     text-align: center;
     padding: 80px 20px;
@@ -495,10 +126,8 @@
   .spin { display: inline-block; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ─── FEED ─── */
   .feed { display: flex; flex-direction: column; gap: 20px; }
 
-  /* ─── CARD ─── */
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -509,16 +138,7 @@
     position: relative;
     overflow: hidden;
   }
-  .card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(201,169,110,0.04) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity .2s;
-  }
   .card:hover { border-color: #3a3630; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-  .card:hover::before { opacity: 1; }
 
   .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
   .card-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -541,10 +161,8 @@
     font-weight: 700;
     line-height: 1.3;
     margin-bottom: 10px;
-    color: var(--text);
   }
   .card-preview { font-size: 0.88rem; color: var(--text2); line-height: 1.65; margin-bottom: 16px; }
-
   .card-footer { display: flex; gap: 12px; }
 
   .react-btn {
@@ -561,7 +179,6 @@
   .react-btn.liked { color: #e86e6e; border-color: #e86e6e; }
   .react-btn.big { padding: 8px 20px; font-size: 0.9rem; }
 
-  /* ─── STORY VIEW ─── */
   .story-view { animation: fadeUp .3s ease; }
   @keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: none; } }
 
@@ -583,7 +200,6 @@
   .story-body { font-size: 1rem; line-height: 1.85; color: #c8c4bc; }
   .story-actions { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); }
 
-  /* ─── COMMENTS ─── */
   .comments-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -597,7 +213,6 @@
     color: var(--accent);
   }
   #comments-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
-
   .comment {
     padding: 14px 16px;
     background: var(--surface2);
@@ -608,24 +223,19 @@
   .comment-time { font-size: 0.72rem; color: var(--text2); }
   .comment p { margin-top: 6px; font-size: 0.9rem; color: #bbb; }
   .no-comments { color: var(--text2); font-size: 0.88rem; font-style: italic; }
-
   .comment-form { display: flex; flex-direction: column; gap: 12px; }
   .comment-controls { display: flex; align-items: center; justify-content: space-between; }
 
-  /* ─── WRITE VIEW ─── */
   .write-view { animation: fadeUp .3s ease; }
   .write-heading {
     font-family: 'Playfair Display', serif;
     font-size: 1.8rem;
     margin-bottom: 28px;
-    color: var(--text);
   }
   .write-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
 
-  /* ─── INPUTS ─── */
-  input[type=text], input[type=email], input[type=password],
-  textarea, .story-input, .story-textarea {
-    background: var(--surface);
+  input[type=text], input[type=email], input[type=password], textarea {
+    background: var(--surface2);
     border: 1px solid var(--border);
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
@@ -640,8 +250,37 @@
   input:focus, textarea:focus { border-color: var(--accent); }
   ::placeholder { color: #555; }
 
-  .story-input { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 16px; }
-  .story-textarea { line-height: 1.8; min-height: 260px; }
+  .story-title-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    border-radius: 8px;
+    padding: 12px 16px;
+    width: 100%;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color .2s;
+  }
+  .story-title-input:focus { border-color: var(--accent); }
+
+  .story-body-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    padding: 12px 16px;
+    width: 100%;
+    outline: none;
+    line-height: 1.8;
+    min-height: 260px;
+    resize: vertical;
+    transition: border-color .2s;
+  }
+  .story-body-input:focus { border-color: var(--accent); }
 
   .anon-label {
     display: flex;
@@ -650,56 +289,71 @@
     font-size: 0.82rem;
     color: var(--text2);
     cursor: pointer;
+    user-select: none;
   }
-  .anon-label input { width: auto; cursor: pointer; accent-color: var(--accent); }
+  .anon-label input[type=checkbox] { width: auto; cursor: pointer; accent-color: var(--accent); }
 
-  /* ─── MODAL ─── */
+  /* MODAL */
   #modal-overlay {
     display: none;
     position: fixed; inset: 0; z-index: 200;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(4px);
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
     align-items: center;
     justify-content: center;
+    padding: 16px;
   }
   #modal-overlay.visible { display: flex; }
 
   #modal-box {
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid #333;
     border-radius: 16px;
     padding: 36px 32px;
     width: 100%;
-    max-width: 380px;
+    max-width: 400px;
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
     animation: fadeUp .25s ease;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
   }
   .modal-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
-    margin-bottom: 4px;
+    font-size: 1.6rem;
+    margin-bottom: 6px;
+    color: var(--text);
   }
-  .modal-input { margin: 0; }
   .modal-close {
     position: absolute; top: 16px; right: 16px;
     background: none; color: var(--text2); font-size: 1rem;
-    width: 28px; height: 28px; border-radius: 50%;
+    width: 30px; height: 30px; border-radius: 50%;
     border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    padding: 0;
+    padding: 0; line-height: 1;
   }
   .modal-close:hover { color: var(--text); border-color: #555; }
-  .modal-switch { font-size: 0.82rem; color: var(--text2); text-align: center; }
+  .modal-switch { font-size: 0.82rem; color: var(--text2); text-align: center; margin-top: 4px; }
   .modal-switch a { color: var(--accent); cursor: pointer; text-decoration: underline; }
 
-  /* ─── TOAST ─── */
+  .error-msg {
+    background: rgba(201, 110, 110, 0.15);
+    border: 1px solid rgba(201,110,110,0.4);
+    color: #e89090;
+    padding: 10px 14px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* TOAST */
   #toast {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: var(--surface);
-    border: 1px solid var(--border);
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1e1e1e;
+    border: 1px solid #333;
     color: var(--text);
     padding: 12px 24px;
     border-radius: 8px;
@@ -707,47 +361,423 @@
     opacity: 0;
     transition: all .3s;
     pointer-events: none;
-    z-index: 300;
+    z-index: 400;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    white-space: nowrap;
   }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* ─── SCROLLBAR ─── */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
-  /* ─── MOBILE ─── */
   @media (max-width: 600px) {
     nav { padding: 0 16px; }
     #main { padding: 24px 14px 60px; }
-    .story-full { padding: 24px 20px; }
-    .story-title { font-size: 1.5rem; }
-    .write-view .write-footer { flex-direction: column; align-items: flex-start; }
+    .story-full { padding: 24px 16px; }
+    .story-title { font-size: 1.4rem; }
+    #modal-box { padding: 28px 20px; }
   }
 </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
 <nav>
-  <div class="nav-logo" onclick="window._loadFeed()">Az<span>ul</span></div>
+  <div class="nav-logo" onclick="App.goFeed()">Az<span>ul</span></div>
   <div class="nav-center">
-    <button class="btn-primary" onclick="window._showWritePage()">+ Write</button>
+    <button class="btn-primary" onclick="App.goWrite()">+ Write</button>
   </div>
   <div id="nav-auth"></div>
 </nav>
 
-<!-- MAIN CONTENT -->
-<div id="main"></div>
+<div id="main"><div class="loading"><span class="spin">◌</span> Loading…</div></div>
 
-<!-- MODAL -->
-<div id="modal-overlay">
+<div id="modal-overlay" onclick="App.modalClickOutside(event)">
   <div id="modal-box"></div>
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
 
+<!-- Firebase via CDN (no bundler needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ─── Firebase Init ───────────────────────────────────────────
+firebase.initializeApp({
+  apiKey: "AIzaSyB1kOebyVKpGVCUoG6e5WBurOK-cqMTDDA",
+  authDomain: "azul-azul-azul.firebaseapp.com",
+  projectId: "azul-azul-azul",
+  storageBucket: "azul-azul-azul.firebasestorage.app",
+  messagingSenderId: "544736797044",
+  appId: "1:544736797044:web:7863b3c74e71e10daacc21",
+  measurementId: "G-LGJDK6MPQL"
+});
+
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ─── App ─────────────────────────────────────────────────────
+const App = (() => {
+  let user = null;
+  let unsub = null;
+  let page  = 'feed';
+
+  // ── helpers ──
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function ago(ts) {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    const s = Math.floor((Date.now()-d)/1000);
+    if (s<60) return 'just now';
+    if (s<3600) return Math.floor(s/60)+'m ago';
+    if (s<86400) return Math.floor(s/3600)+'h ago';
+    return Math.floor(s/86400)+'d ago';
+  }
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._tid);
+    t._tid = setTimeout(()=>t.classList.remove('show'), 3200);
+  }
+  function main() { return document.getElementById('main'); }
+  function stopUnsub() { if(unsub){unsub();unsub=null;} }
+
+  // ── nav ──
+  function renderNav() {
+    const el = document.getElementById('nav-auth');
+    if (user) {
+      el.innerHTML = `
+        <span class="nav-user">✦ ${esc(user.displayName||user.email)}</span>
+        <button class="btn-ghost" onclick="App.signOut()">Sign out</button>`;
+    } else {
+      el.innerHTML = `
+        <button class="btn-ghost" onclick="App.openModal('login')">Sign in</button>
+        <button class="btn-primary" onclick="App.openModal('register')">Join</button>`;
+    }
+  }
+
+  // ── feed ──
+  function goFeed() {
+    page = 'feed';
+    stopUnsub();
+    main().innerHTML = `<div class="loading"><span class="spin">◌</span> Loading stories…</div>`;
+    const q = db.collection('stories').orderBy('createdAt','desc');
+    unsub = q.onSnapshot(snap => {
+      if (snap.empty) {
+        main().innerHTML = `<div class="empty-state">
+          <div class="empty-icon">✦</div>
+          <p>No stories yet. Be the first to share.</p>
+          <button class="btn-primary" onclick="App.goWrite()">Write a story</button>
+        </div>`;
+        return;
+      }
+      main().innerHTML = `<div class="feed">${snap.docs.map(d=>cardHTML(d.id,d.data())).join('')}</div>`;
+    }, err => {
+      main().innerHTML = `<div class="empty-state"><p style="color:#e89090">⚠ Could not load stories: ${esc(err.message)}</p></div>`;
+    });
+  }
+
+  function cardHTML(id, d) {
+    const liked = user && (d.likes||[]).includes(user.uid);
+    const author = d.anonymous ? '✦ Anonymous' : esc(d.authorName||'Unknown');
+    const preview = esc(d.body||'').substring(0,220) + ((d.body||'').length>220?'…':'');
+    const isOwner = user && user.uid===d.authorId;
+    return `
+    <article class="card" onclick="App.openStory('${id}')">
+      <div class="card-header">
+        <div class="card-meta">
+          <span class="author-tag ${d.anonymous?'anon':''}">${author}</span>
+          <span class="time-tag">${ago(d.createdAt)}</span>
+        </div>
+        ${isOwner?`<button class="btn-delete" onclick="event.stopPropagation();App.deleteStory('${id}')">✕</button>`:''}
+      </div>
+      <h2 class="card-title">${esc(d.title)}</h2>
+      <p class="card-preview">${preview}</p>
+      <div class="card-footer">
+        <button class="react-btn ${liked?'liked':''}" onclick="event.stopPropagation();App.toggleLike('${id}',${liked})">
+          ${liked?'♥':'♡'} <span>${(d.likes||[]).length}</span>
+        </button>
+        <button class="react-btn" onclick="event.stopPropagation();App.openStory('${id}')">
+          ◇ <span>${(d.comments||[]).length}</span>
+        </button>
+      </div>
+    </article>`;
+  }
+
+  // ── story ──
+  async function openStory(id) {
+    page = 'story';
+    stopUnsub();
+    main().innerHTML = `<div class="loading"><span class="spin">◌</span></div>`;
+    try {
+      const snap = await db.collection('stories').doc(id).get();
+      if (!snap.exists) { main().innerHTML=`<p>Story not found.</p>`; return; }
+      const d = snap.data();
+      const liked = user && (d.likes||[]).includes(user.uid);
+      const author = d.anonymous ? '✦ Anonymous' : esc(d.authorName||'Unknown');
+      const isOwner = user && user.uid===d.authorId;
+      const comments = (d.comments||[]).length
+        ? (d.comments||[]).map(c=>`
+          <div class="comment">
+            <span class="comment-author">${c.anonymous?'✦ Anonymous':esc(c.authorName||'Unknown')}</span>
+            <span class="comment-time">${ago(c.createdAt)}</span>
+            <p>${esc(c.text)}</p>
+          </div>`).join('')
+        : `<p class="no-comments">No comments yet.</p>`;
+
+      main().innerHTML = `
+        <div class="story-view">
+          <button class="back-btn" onclick="App.goFeed()">← Back to feed</button>
+          <div class="story-full">
+            <div class="story-top">
+              <span class="author-tag ${d.anonymous?'anon':''}">${author}</span>
+              <span class="time-tag">${ago(d.createdAt)}</span>
+              ${isOwner?`<button class="btn-delete" onclick="App.deleteStory('${id}')">✕ Delete</button>`:''}
+            </div>
+            <h1 class="story-title">${esc(d.title)}</h1>
+            <div class="story-body">${esc(d.body).replace(/\n/g,'<br/>')}</div>
+            <div class="story-actions">
+              <button class="react-btn big ${liked?'liked':''}" id="like-btn" onclick="App.toggleLike('${id}',${liked},true)">
+                ${liked?'♥':'♡'} ${(d.likes||[]).length} likes
+              </button>
+            </div>
+          </div>
+          <div class="comments-section">
+            <h3 class="comments-heading">Comments</h3>
+            <div id="comments-list">${comments}</div>
+            <div class="comment-form">
+              <textarea id="comment-text" placeholder="Write a comment…" rows="3"></textarea>
+              <div class="comment-controls">
+                <label class="anon-label">
+                  <input type="checkbox" id="comment-anon"/> Post anonymously
+                </label>
+                <button class="btn-primary" onclick="App.postComment('${id}')">Post</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    } catch(e) {
+      main().innerHTML = `<p style="color:#e89090">Error: ${esc(e.message)}</p>`;
+    }
+  }
+
+  // ── write ──
+  function goWrite() {
+    page = 'write';
+    stopUnsub();
+    main().innerHTML = `
+      <div class="write-view">
+        <button class="back-btn" onclick="App.goFeed()">← Back</button>
+        <h2 class="write-heading">Tell your story</h2>
+        <input type="text" class="story-title-input" id="w-title" placeholder="Give it a title…" maxlength="120"/>
+        <textarea class="story-body-input" id="w-body" placeholder="Write anything. No rules." rows="14"></textarea>
+        <div class="write-footer">
+          <label class="anon-label">
+            <input type="checkbox" id="w-anon" ${!user?'checked disabled':''}/>
+            Post anonymously${!user?' (you\'re not signed in)':''}
+          </label>
+          <button class="btn-primary large" id="publish-btn" onclick="App.submitStory()">Publish ✦</button>
+        </div>
+      </div>`;
+  }
+
+  async function submitStory() {
+    const title = document.getElementById('w-title').value.trim();
+    const body  = document.getElementById('w-body').value.trim();
+    const anon  = document.getElementById('w-anon').checked || !user;
+    if (!title) { toast('Please add a title.'); return; }
+    if (!body)  { toast('Please write your story.'); return; }
+    const btn = document.getElementById('publish-btn');
+    btn.disabled = true; btn.textContent = 'Publishing…';
+    try {
+      await db.collection('stories').add({
+        title, body,
+        anonymous: anon,
+        authorId:   user ? user.uid  : null,
+        authorName: user ? (user.displayName||user.email) : null,
+        likes: [],
+        comments: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast('Story published! ✦');
+      goFeed();
+    } catch(e) {
+      toast('Error publishing: ' + e.message);
+      btn.disabled=false; btn.textContent='Publish ✦';
+    }
+  }
+
+  // ── like ──
+  async function toggleLike(id, liked, reload) {
+    if (!user) { toast('Sign in to like stories.'); return; }
+    try {
+      await db.collection('stories').doc(id).update({
+        likes: liked
+          ? firebase.firestore.FieldValue.arrayRemove(user.uid)
+          : firebase.firestore.FieldValue.arrayUnion(user.uid)
+      });
+      if (reload) openStory(id);
+    } catch(e) { toast('Error: '+e.message); }
+  }
+
+  // ── comment ──
+  async function postComment(storyId) {
+    const text = document.getElementById('comment-text').value.trim();
+    const anon = document.getElementById('comment-anon').checked || !user;
+    if (!text) { toast('Write something first.'); return; }
+    try {
+      await db.collection('stories').doc(storyId).update({
+        comments: firebase.firestore.FieldValue.arrayUnion({
+          text,
+          anonymous: anon,
+          authorName: user?(user.displayName||user.email):null,
+          authorId: user?user.uid:null,
+          createdAt: new Date().toISOString()
+        })
+      });
+      document.getElementById('comment-text').value='';
+      openStory(storyId);
+    } catch(e) { toast('Error: '+e.message); }
+  }
+
+  // ── delete ──
+  async function deleteStory(id) {
+    if (!confirm('Delete this story forever?')) return;
+    try {
+      await db.collection('stories').doc(id).delete();
+      toast('Story deleted.');
+      goFeed();
+    } catch(e) { toast('Error: '+e.message); }
+  }
+
+  // ── modal ──
+  function openModal(type) {
+    const overlay = document.getElementById('modal-overlay');
+    const box     = document.getElementById('modal-box');
+    overlay.classList.add('visible');
+    if (type==='register') {
+      box.innerHTML = `
+        <button class="modal-close" onclick="App.closeModal()">✕</button>
+        <h2 class="modal-title">Create account</h2>
+        <div class="error-msg" id="modal-err"></div>
+        <input type="text"     id="r-name"  placeholder="Your name" autocomplete="name"/>
+        <input type="email"    id="r-email" placeholder="Email address" autocomplete="email"/>
+        <input type="password" id="r-pass"  placeholder="Password (6+ characters)" autocomplete="new-password"/>
+        <button class="btn-primary full" id="modal-btn" onclick="App.doRegister()">Create account</button>
+        <p class="modal-switch">Already have an account? <a onclick="App.openModal('login')">Sign in</a></p>`;
+    } else {
+      box.innerHTML = `
+        <button class="modal-close" onclick="App.closeModal()">✕</button>
+        <h2 class="modal-title">Welcome back</h2>
+        <div class="error-msg" id="modal-err"></div>
+        <input type="email"    id="l-email" placeholder="Email address" autocomplete="email"/>
+        <input type="password" id="l-pass"  placeholder="Password" autocomplete="current-password"/>
+        <button class="btn-primary full" id="modal-btn" onclick="App.doLogin()">Sign in</button>
+        <p class="modal-switch">No account? <a onclick="App.openModal('register')">Create one</a></p>`;
+    }
+  }
+
+  function showModalError(msg) {
+    const el = document.getElementById('modal-err');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('visible');
+  }
+
+  function modalClickOutside(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  // ── auth ──
+  async function doRegister() {
+    const name  = document.getElementById('r-name').value.trim();
+    const email = document.getElementById('r-email').value.trim();
+    const pass  = document.getElementById('r-pass').value;
+    if (!name)  { showModalError('Please enter your name.'); return; }
+    if (!email) { showModalError('Please enter your email.'); return; }
+    if (!pass)  { showModalError('Please enter a password.'); return; }
+    if (pass.length < 6) { showModalError('Password must be at least 6 characters.'); return; }
+    const btn = document.getElementById('modal-btn');
+    btn.disabled=true; btn.textContent='Creating account…';
+    try {
+      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      await cred.user.updateProfile({ displayName: name });
+      user = auth.currentUser;
+      closeModal();
+      renderNav();
+      toast(`Welcome to Azul, ${name}! ✦`);
+      if (page==='feed') goFeed();
+    } catch(e) {
+      btn.disabled=false; btn.textContent='Create account';
+      const msgs = {
+        'auth/email-already-in-use': 'That email is already registered. Try signing in.',
+        'auth/invalid-email': 'Invalid email address.',
+        'auth/weak-password': 'Password is too weak. Use at least 6 characters.',
+        'auth/operation-not-allowed': '⚠ Email/password sign-in is not enabled. Go to Firebase Console → Authentication → Sign-in method → enable Email/Password.',
+        'auth/network-request-failed': 'Network error. Check your internet connection.',
+        'auth/configuration-not-found': '⚠ Firebase Auth is not configured. Enable Email/Password in Firebase Console → Authentication → Sign-in method.',
+      };
+      showModalError(msgs[e.code] || e.message);
+    }
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('l-email').value.trim();
+    const pass  = document.getElementById('l-pass').value;
+    if (!email) { showModalError('Please enter your email.'); return; }
+    if (!pass)  { showModalError('Please enter your password.'); return; }
+    const btn = document.getElementById('modal-btn');
+    btn.disabled=true; btn.textContent='Signing in…';
+    try {
+      await auth.signInWithEmailAndPassword(email, pass);
+      closeModal();
+      toast('Signed in ✦');
+    } catch(e) {
+      btn.disabled=false; btn.textContent='Sign in';
+      const msgs = {
+        'auth/user-not-found': 'No account found with that email.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/invalid-email': 'Invalid email address.',
+        'auth/invalid-credential': 'Wrong email or password.',
+        'auth/too-many-requests': 'Too many attempts. Try again later.',
+        'auth/operation-not-allowed': '⚠ Email/password sign-in is not enabled in Firebase Console.',
+        'auth/network-request-failed': 'Network error. Check your internet connection.',
+      };
+      showModalError(msgs[e.code] || e.message);
+    }
+  }
+
+  async function signOut() {
+    await auth.signOut();
+    toast('Signed out.');
+    goFeed();
+  }
+
+  // ── auth listener ──
+  auth.onAuthStateChanged(u => {
+    user = u;
+    renderNav();
+  });
+
+  // ── init ──
+  window.addEventListener('DOMContentLoaded', () => {
+    renderNav();
+    goFeed();
+  });
+
+  return { goFeed, goWrite, openStory, submitStory, toggleLike, postComment,
+           deleteStory, openModal, closeModal, modalClickOutside,
+           doRegister, doLogin, signOut };
+})();
+</script>
 </body>
 </html>
